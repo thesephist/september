@@ -10,8 +10,12 @@ Tokenize := load('tokenize')
 tokenize := Tokenize.tokenize
 tkString := Tokenize.tkString
 
+Parse := load('parse')
+parse := Parse.parse
+
 main := prog => (
 	tokens := tokenize(prog)
 	each(tokens, tok => log(tkString(tok)))
-	(std.stringList)(map(tokens, tkString)) + char(10)
+
+	string(parse(tokens)) + char(10)
 )

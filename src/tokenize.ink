@@ -13,17 +13,10 @@ digit? := str.digit?
 hasPrefix? := str.hasPrefix?
 index := str.index
 
+mkiota := load('iota').new
+
 Newline := char(10)
 Tab := char(9)
-
-` generator for consecutive ints, to make clean enums `
-mkiota := () => self := {
-	i: ~1
-	next: () => (
-		self.i := self.i + 1
-		self.i
-	)
-}
 
 iota := mkiota().next
 Tok := {
