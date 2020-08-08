@@ -72,8 +72,8 @@ parse := tokens => (
 	(sub := idx => tokens.(idx) :: {
 		() -> nodes
 		_ -> (
-			result := parseAtom(tokens, idx)
-			log(result) `` TODO: debug
+			result := parseExpr(tokens, idx)
+			log('parsed expr -> ' + string(result))
 			result.err :: {
 				() -> (
 					nodes.len(nodes) := result.node
@@ -180,7 +180,114 @@ parseBinaryExpr := (left, op, prevPriority, tokens, idx) => (
 )
 
 parseExpr := (tokens, idx) => (
-	` TODO: implement `
+	S := {
+		idx: idx
+	}
+
+	consumeDanglingSeparator := () => tokens.(S.idx) :: {
+		{type: Tok.Separator, val: _, line: _, col: _} -> S.idx := S.idx + 1
+	}
+
+	result := parseAtom(tokens, S.idx)
+	atom := result.node
+	result.err :: {
+		() -> (
+			S.idx := result.idx
+
+			tokens.(S.idx) :: {
+				() -> {
+					node: ()
+					idx: S.idx + 1
+					err: 'unexpected end of input, expected continued expression'
+				}
+				_ -> (
+					next := tokens.(S.idx)
+					S.idx := S.idx + 1
+
+					produceBinaryExpr := () => (
+						result := parseBinaryExpr(atom, next, ~1, tokens, S.idx)
+						binExpr := result.node
+						S.idx := result.idx
+						result.err :: {
+							() -> tokens.(S.idx) :: {
+								{type: Tok.MatchColon, val: _, line: _, col: _} -> (
+									S.idx := S.idx + 1
+									produceMatchExpr(binExpr)
+								)
+								_ -> (
+									consumeDanglingSeparator()
+									{
+										node: binExpr
+										idx: S.idx
+										err: ()
+									}
+								)
+							}
+							_ -> result
+						}
+					)
+					produceMatchExpr := condition => (
+						result := parseMatchBody(tokens, S.idx)
+						clauses := result.node
+						S.idx := result.idx
+						result.err :: {
+							() -> (
+								consumeDanglingSeparator()
+								{
+									node: {
+										type: Node.MatchExpr
+										clauses: clauses
+									}
+									idx: S.idx
+								}
+							)
+							_ -> result
+						}
+					)
+
+					next.type :: {
+						(Tok.Separator) -> {
+							node: atom
+							idx: S.idx
+							err: ()
+						}
+						` these belong to the parente atom that contains
+							this expression, so return without consuming token `
+						(Tok.KeyValueSeparator) -> {
+							node: atom
+							idx: S.idx - 1
+							err: ()
+						}
+						(Tok.RightParen) -> {
+							node: atom
+							idx: S.idx - 1
+							err: ()
+						}
+						(Tok.AddOp) -> produceBinaryExpr()
+						(Tok.SubOp) -> produceBinaryExpr()
+						(Tok.MulOp) -> produceBinaryExpr()
+						(Tok.DivOp) -> produceBinaryExpr()
+						(Tok.ModOp) -> produceBinaryExpr()
+						(Tok.AndOp) -> produceBinaryExpr()
+						(Tok.XorOp) -> produceBinaryExpr()
+						(Tok.OrOp) -> produceBinaryExpr()
+						(Tok.GtOp) -> produceBinaryExpr()
+						(Tok.LtOp) -> produceBinaryExpr()
+						(Tok.EqOp) -> produceBinaryExpr()
+						(Tok.DefineOp) -> produceBinaryExpr()
+						(Tok.AccessorOp) -> produceBinaryExpr()
+						(Tok.MatchColon) -> produceMatchExpr(atom)
+						_ -> {
+							node: ()
+							idx: S.idx
+							err: 'not implemented!'
+						}
+					}
+				)
+			}
+		)
+		_ -> result
+	}
 )
 
 parseAtom := (tokens, idx) => tokens.(idx) :: {
@@ -199,7 +306,21 @@ parseAtom := (tokens, idx) => tokens.(idx) :: {
 			}
 			_ -> (
 				tok := tokens.(idx)
-				log(tkString(tok))
+
+				consumePotentialFunctionCall := (fnNode, idx) => (
+					tokens.(idx) :: {
+						{type: Tok.LParen, val: _, line: _, col: _} -> (
+							result := parseFnCall(fnNode, tokens, idx)
+							` parseAtom should not consume trailing Separators, but
+								parseFnCall does because it ends with expressions.
+								so we backtrack one token `
+							result.idx := result.idx - 1
+							result
+						)
+						_ -> fnNode
+					}
+				)
+
 				tok.type :: {
 					(Tok.NumberLiteral) -> {
 						node: {
@@ -229,6 +350,29 @@ parseAtom := (tokens, idx) => tokens.(idx) :: {
 						}
 						idx: idx + 1
 					}
+					(Tok.Ident) -> tokens.(idx + 1).type :: {
+						(Tok.FunctionArrow) -> () ` TODO: implement`
+						_ -> consumePotentialFunctionCall({
+							type: Node.Ident
+							val: tok.val
+						}, idx + 1)
+					}
+					(Tok.EmptyIdent) -> tokens.(idx + 1).type :: {
+						(Tok.FunctionArrow) -> () ` TODO: implement`
+						_ -> consumePotentialFunctionCall({
+							type: Node.Ident
+							val: tok.val
+						}, idx + 1)
+					}
+					(Tok.LParen) -> (
+						` TODO: expr list or fn literal `
+					)
+					(Tok.LBrace) -> (
+						` TODO: implement object literal `
+					)
+					(Tok.LBracket) -> (
+						` TODO: implement list literal `
+					)
 					` TODO: other types
 						- identifier
 						- empty ident
