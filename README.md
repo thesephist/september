@@ -1,6 +1,18 @@
 # September 🐞
 
-Ink to JavaScript compiler and toolchain
+**September** is an Ink to JavaScript compiler and toolchain for cross-compiling Ink applications to Node.js and the Web.
+
+## Usage
+
+## Transformations
+
+September constructs an Ink parse tree and recursively translates each tree node into its JavaScript equivalent. Since Ink programs are semantically very similar to JavaScript programs, this straightforward translation works well.
+
+Specifically, `september translate <file>.ink` will translate Ink program source files to JavaScript files and print them to stdout.
+
+September makes the following translations.
+
+	// TODO
 
 ## Ideas and brainstorming
 
