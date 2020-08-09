@@ -66,8 +66,10 @@ isBinaryOp := tok => opPriority(tok) > ~1
 parse := tokens => (
 	nodes := []
 
-	(tokens.0).type :: {
-		(Tok.Separator) -> tokens := slice(tokens, 1, len(tokens))
+	tokens.0 :: {
+		{type: Tok.Separator, val: _, line: _, col: _} -> (
+			tokens := slice(tokens, 1, len(tokens))
+		)
 	}
 
 	(sub := idx => tokens.(idx) :: {

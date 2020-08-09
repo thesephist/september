@@ -21,10 +21,10 @@ Newline := char(10)
 
 main := prog => (
 	tokens := tokenize(prog)
-	each(tokens, tok => log(tkString(tok)))
+	`` each(tokens, tok => log(tkString(tok)))
 
 	nodes := parse(tokens)
-	log(nodes)
+	`` log(nodes)
 
 	type(nodes) :: {
 		` tree of nodes `

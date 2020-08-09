@@ -87,7 +87,7 @@ renderBinaryExpr := node => node.op :: {
 	(Tok.XorOp) -> f('__ink_xor({{0}}, {{1}})', [render(node.left), render(node.right)])
 	(Tok.OrOp) -> f('__ink_or({{0}}, {{1}})', [render(node.left), render(node.right)])
 
-	(Tok.EqOp) -> f('__ink_eq({{0}}, {{1}})', [render(node.left, render(node.right))])
+	(Tok.EqOp) -> f('__ink_eq({{0}}, {{1}})', [render(node.left), render(node.right)])
 	(Tok.GtOp) -> f('{{0}} > {{1}}', [render(node.left), render(node.right)])
 	(Tok.LtOp) -> f('{{0}} < {{1}}', [render(node.left), render(node.right)])
 
