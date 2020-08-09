@@ -40,7 +40,10 @@ analyzeSubexpr := (node, ctx) => node.type :: {
 	(Node.FnLiteral) -> (
 		analyzeSubexpr(node.body, ctx)
 		[node.body.type, node.body.op] :: {
-			[Node.BinaryExpr, Tok.DefineOp] -> node.body.decl? := true
+			[Node.BinaryExpr, Tok.DefineOp] -> node.body.left.type :: {
+				(Node.Ident) -> node.body.decl? := true
+				(Node.EmptyIdent) -> node.body.decl? := true
+			}
 			[Node.MatchExpr, _] -> (
 				cond := node.body.condition
 				[cond.type, cond.op, cond.left] :: {
@@ -63,6 +66,7 @@ analyzeSubexpr := (node, ctx) => node.type :: {
 			)
 			_ -> analyzeSubexpr(node.body, ctx)
 		}
+		node
 	)
 	(Node.MatchExpr) -> (
 		analyzeSubexpr(node.condition, ctx)

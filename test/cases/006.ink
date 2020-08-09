@@ -23,8 +23,7 @@ suite := label => (
 	}
 
 	` mark sections of a test suite with human labels `
-	`` TODO: mark := label => s.msgs.len(s.msgs) := '- ' + label
-	mark := label => (s.msgs.len(s.msgs) := '- ' + label)
+	mark := label => s.msgs.len(s.msgs) := '- ' + label
 
 	` signal end of test suite, print out results `
 	end := () => (

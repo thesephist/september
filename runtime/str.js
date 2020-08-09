@@ -1,4 +1,4 @@
-const std = require('./std');
+const std = require('./std')
 
 const map = (std.map !== undefined ? std.map : null);
 module.exports.map = map;
@@ -36,7 +36,7 @@ const upper = (s) => {return reduce(s, (acc, c, i) => {return __ink_match(lower_
 module.exports.upper = upper;
 const title = (s) => (() => {let lowered = lower(s); return (() => {let __ink_assgn_trgt = __as_ink_string(lowered); __is_ink_string(__ink_assgn_trgt) ? __ink_assgn_trgt.assign(0, upper((lowered[0] !== undefined ? lowered[0] : null))) : (__ink_assgn_trgt[0]) = upper((lowered[0] !== undefined ? lowered[0] : null)); return __ink_assgn_trgt})()})();
 module.exports.title = title;
-const replaceNonEmpty = (s, old, __ink_ident_new) => (() => {let lold = len(old); let l__ink_ident_new = len(__ink_ident_new); return (() => {sub = (acc, i) => {return __ink_match(matchesAt__ink_qm__(acc, old, i), [[() => true, () => sub(slice(acc, 0, i) + __ink_ident_new + slice(acc, i + lold, len(acc)), i + l__ink_ident_new)], [() => false, () => __ink_match(i < len(acc), [[() => true, () => sub(acc, i + 1)], [() => false, () => acc]])]])}; return sub})()(s, 0)})();
+const replaceNonEmpty = (s, old, __ink_ident_new) => (() => {let lold = len(old); let lnew = len(__ink_ident_new); return (() => {sub = (acc, i) => {return __ink_match(matchesAt__ink_qm__(acc, old, i), [[() => true, () => sub(slice(acc, 0, i) + __ink_ident_new + slice(acc, i + lold, len(acc)), i + lnew)], [() => false, () => __ink_match(i < len(acc), [[() => true, () => sub(acc, i + 1)], [() => false, () => acc]])]])}; return sub})()(s, 0)})();
 module.exports.replaceNonEmpty = replaceNonEmpty;
 const replace = (s, old, __ink_ident_new) => {return __ink_match(old, [[() => __Ink_String(``), () => s], [() => __Ink_Empty, () => replaceNonEmpty(s, old, __ink_ident_new)]])};
 module.exports.replace = replace;
