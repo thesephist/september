@@ -243,6 +243,8 @@ tokenize := s => (
 								S.col := 0
 								sub()
 							)
+							` comments that don't end should be ignored `
+							() -> ()
 							_ -> (
 								S.i := S.i + 1
 								S.col := S.col + 1

@@ -71,6 +71,10 @@ When calling a function that invokes tail calls (calls itself in a conditional b
 
 ## Ideas and brainstorming
 
+Testing
+
+- Test should run through all valid test cases in `test/cases/` and compare that the output for programs running on Node.js matches the output when run on Ink's Go interpreter.
+
 Torus interop layer
 
 - Speak raw JDOM, not tagged templates.

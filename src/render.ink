@@ -71,7 +71,7 @@ renderFnLiteral := node => f('({{0}}) => {{1}}', [
 	cat(map(node.args, renderFnArg), ', ')
 	node.body.type :: {
 		(Node.ObjectLiteral) -> '(' + render(node.body) + ')'
-		_ -> render(node.body)
+		_ -> '{return ' + render(node.body) + '}'
 	}
 ])
 
