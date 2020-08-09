@@ -9,3 +9,9 @@ window.location.href
 obj.('hi', a + b)
 
 (console.log)('hi')
+
+x => 9 + x * x
+y => (
+	log(y)
+	y + 2
+)

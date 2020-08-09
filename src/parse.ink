@@ -362,14 +362,14 @@ parseAtom := (tokens, idx) => tokens.(idx) :: {
 						idx: idx + 1
 					}
 					(Tok.Ident) -> tokens.(idx + 1).type :: {
-						(Tok.FunctionArrow) -> () ` TODO: implement`
+						(Tok.FunctionArrow) -> parseFnLiteral(tokens, idx)
 						_ -> consumePotentialFunctionCall({
 							type: Node.Ident
 							val: tok.val
 						}, idx + 1)
 					}
 					(Tok.EmptyIdent) -> tokens.(idx + 1).type :: {
-						(Tok.FunctionArrow) -> () ` TODO: implement`
+						(Tok.FunctionArrow) -> parseFnLiteral(tokens, idx)
 						_ -> consumePotentialFunctionCall({
 							type: Node.Ident
 							val: tok.val
@@ -408,7 +408,7 @@ parseAtom := (tokens, idx) => tokens.(idx) :: {
 								err: 'unexpected end of input, expected continued expression'
 							}
 							_ -> tokens.(S.idx).type :: {
-								(Tok.FunctionArrow) -> () `` TODO: implement
+								(Tok.FunctionArrow) -> parseFnLiteral(tokens, idx)
 								_ -> consumePotentialFunctionCall({
 									type: Node.ExprList
 									exprs: exprs
@@ -422,12 +422,6 @@ parseAtom := (tokens, idx) => tokens.(idx) :: {
 					(Tok.LBracket) -> (
 						` TODO: implement list literal `
 					)
-					` TODO: other types
-						- identifier
-						- empty ident
-						- left paren
-						- left brace
-						- left bracket `
 					_ -> {
 						node: ()
 						idx: idx
@@ -438,6 +432,84 @@ parseAtom := (tokens, idx) => tokens.(idx) :: {
 		}
 	}
 }
+
+parseFnLiteral := (tokens, idx) => (
+	args := []
+
+	processBody := idx => tokens.(idx) :: {
+		{type: Tok.FunctionArrow, val: _, line: _, col: _} -> (
+			result := parseExpr(tokens, idx + 1)
+			result.err :: {
+				() -> {
+					node: {
+						type: Node.FnLiteral
+						args: args
+						body: result.node
+					}
+					` literal values should not consume trailing separators,
+						but the parseExpr() above does, so we give that up
+						here to account for it for the parent that called
+						into this parseFnLiteral `
+					idx: result.idx - 1
+				}
+				_ -> result
+			}
+		)
+		_ -> {
+			node: ()
+			idx: idx
+			error: 'unexpected end of input, expected =>'
+		}
+	}
+
+	tok := tokens.(idx)
+	tok :: {
+		() -> {
+			node: ()
+			idx: idx
+			err: 'unexpected end of input, expected fn args list'
+		}
+		_ -> tok.type :: {
+			(Tok.EmptyIdent) -> processBody(idx + 1)
+			(Tok.Ident) -> (
+				args.0 := {
+					type: Node.Ident
+					val: tok.val
+				}
+				processBody(idx + 1)
+			)
+			(Tok.LParen) -> (
+				result := (sub := (idx) => (
+					result := parseExpr(tokens, idx)
+					expr := result.node
+					result.err :: {
+						() -> (
+							args.len(args) := expr
+							tokens.(result.idx) :: {
+								() -> {
+									node: ()
+									idx: result.idx
+									err: 'unexpected end of input, expected )'
+								}
+								_ -> (
+									sub(result.idx)
+								)
+							}
+						)
+						_ -> result
+					}
+				))(idx + 1)
+
+				processBody(result.idx)
+			)
+			_ -> {
+				node: ()
+				idx: idx
+				err: 'unexpected token, expected start of fn literal'
+			}
+		}
+	}
+)
 
 parseFnCall := (fnNode, tokens, idx) => (
 	args := []
@@ -481,3 +553,4 @@ parseFnCall := (fnNode, tokens, idx) => (
 		)
 	}
 )
+

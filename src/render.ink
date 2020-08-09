@@ -24,6 +24,7 @@ render := node => node.type :: {
 	(Node.NumberLiteral) -> renderNumberLiteral(node)
 	(Node.StringLiteral) -> renderStringLiteral(node)
 	(Node.BooleanLiteral) -> renderBooleanLiteral(node)
+	(Node.FnLiteral) -> renderFnLiteral(node)
 
 	(Node.Ident) -> renderIdent(node)
 
@@ -37,7 +38,11 @@ renderErr := msg => f('throw new Error("{{0}}")', [msg])
 renderNumberLiteral := node => string(node.val)
 renderStringLiteral := node => '`' + replace(node.val, '`', '\\`') + '`'
 renderBooleanLiteral := node => string(node.val)
-renderIdent := node => node.val
+
+renderFnLiteral := node => f('({{0}}) => {{1}}', [
+	cat(map(node.args, render), ', ')
+	render(node.body)
+])
 
 renderFnCall := node => f(
 	'{{0}}({{1}})'
@@ -68,11 +73,13 @@ renderBinaryExpr := node => node.op :: {
 	(Tok.LtOp) -> f('{{0}} < {{1}}', [render(node.left), render(node.right)])
 
 	(Tok.AccessorOp) -> node.right.type :: {
-		(Node.Ident) -> f('{{0}}.{{1}}', [render(node.left), render(node.right)])
-		_ -> f('{{0}}[{{1}}]', [render(node.left), render(node.right)])
+		(Node.Ident) -> f('({{0}}.{{1}})', [render(node.left), render(node.right)])
+		_ -> f('({{0}}[{{1}}])', [render(node.left), render(node.right)])
 	}
 
 	_ -> renderErr(f('BinaryExpr with unknown op: {{0}}', [node.op]))
 }
+
+renderIdent := node => node.val
 
 renderExprList := node => '(' + cat(map(node.exprs, render), ', ') + ')'
