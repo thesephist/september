@@ -28,6 +28,9 @@ given.verb :: {
 			readFile(path, data => out(translate(data)))
 		))
 	)
+	` start an interactive REPL backed by Node.js, if installed.
+		might end up being the default behavior `
+	'repl' -> log('command "repl" not implemented!')
 	_ -> (
 		log(f('command "{{ verb }}" not recognized', given))
 		log('September supports: build, translate')

@@ -43,13 +43,19 @@ renderErr := msg => f('throw new Error("{{0}}")', [msg])
 renderEmpty := () => '__Ink_Empty'
 
 renderNumberLiteral := node => string(node.val)
-renderStringLiteral := node => '`' + replace(node.val, '`', '\\`') + '`'
+renderStringLiteral := node => f('__Ink_String(`{{0}}`)'
+	[replace(node.val, '`', '\\`')])
 renderBooleanLiteral := node => string(node.val)
 
 renderListLiteral := node => '[' + cat(map(node.exprs, render), ', ') + ']'
 
 renderObjectEntry := node => f('{{0}}: {{1}}', [
-	render(node.key)
+	node.key.type :: {
+		(Node.Ident) -> render(node.key)
+		(Node.EmptyIdent) -> render(node.key)
+		(Node.NumberLiteral) -> render(node.key)
+		_ -> '[' + render(node.key) + ']'
+	}
 	render(node.val)
 ])
 renderObjectLiteral := node => '{' + cat(map(node.entries, renderObjectEntry), ', ') + '}'
@@ -93,6 +99,17 @@ renderBinaryExpr := node => node.op :: {
 	(Tok.GtOp) -> f('{{0}} > {{1}}', [render(node.left), render(node.right)])
 	(Tok.LtOp) -> f('{{0}} < {{1}}', [render(node.left), render(node.right)])
 
+	(Tok.DefineOp) -> node.decl? :: {
+		true -> [node.left.type, node.left.op] :: {
+			[Node.BinaryExpr, Tok.AccessorOp] -> (
+				f('{{0}} = {{1}}', [render(node.left), render(node.right)])
+			)
+			_ -> f('let {{0}} = {{1}}', [render(node.left), render(node.right)])
+		}
+		false -> f('{{0}} = {{1}}', [render(node.left), render(node.right)])
+		_ -> f('{{0}} = {{1}}', [render(node.left), render(node.right)])
+	}
+
 	(Tok.AccessorOp) -> node.right.type :: {
 		(Node.Ident) -> f('({{0}}.{{1}})', [render(node.left), render(node.right)])
 		_ -> f('({{0}}[{{1}}])', [render(node.left), render(node.right)])
@@ -105,7 +122,7 @@ renderIdent := node => node.val
 
 renderExprList := node => node.exprs :: {
 	[] -> 'null'
-	_ -> '(' + cat(map(node.exprs, render), ', ') + ')'
+	_ -> '(() => {' + cat(map(node.exprs, render), ', ') + '})()'
 }
 
 renderMatchExpr := node => f('__ink_match({{0}}, [{{1}}])', [

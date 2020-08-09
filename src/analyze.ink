@@ -10,6 +10,12 @@ Parse := load('parse')
 Node := Parse.Node
 ndString := Parse.ndString
 
-analyze := node => (
-	node
-)
+analyze := node => node.type :: {
+	(Node.BinaryExpr) -> node.op :: {
+		(Tok.DefineOp) -> (
+			node.decl? := true
+		)
+		_ -> node
+	}
+	_ -> node
+}

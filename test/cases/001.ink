@@ -36,8 +36,8 @@ x => 9 + x * x
 [1, 2, '3', 4 + 'a']
 {
 	key: 'value'
-	other: 9.8690
-	max: {
+	other(this): 9.8690
+	(2 + 3): {
 		test: 'tes' + 'sler'
 	}
 }
