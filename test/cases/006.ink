@@ -611,69 +611,69 @@ m('type() builtin function')
 	t('type(()) = ()', type(()), '()')
 )
 
-`` m('std.range/slice/append/join/cat and stringList')
-`` (
-`` 	stringList := std.stringList
-`` 	range := std.range
-`` 	reverse := std.reverse
-`` 	slice := std.slice
-`` 	join := std.join
-`` 	cat := std.cat
-``
-`` 	` slice returns copies `
-`` 	(
-`` 		st := '12345'
-`` 		li := [1, 2, 3, 4, 5]
-``
-`` 		stc := slice(st, 0, len(st))
-`` 		lic := slice(li, 0, len(li))
-`` 		stc.2 := 'x'
-`` 		lic.2 := 'x'
-``
-`` 		t('slice(string) should make a copy', st, '12345')
-`` 		t('slice(string) should return a copy', stc, '12x45')
-`` 		t('slice(list) should make a copy', li, [1, 2, 3, 4, 5])
-`` 		t('slice(list) should return a copy', lic, [1, 2, 'x', 4, 5])
-`` 	)
-``
-`` 	sl := (l, s, e) => stringList(slice(l, s, e))
-`` 	list := range(10, ~1, ~1)
-`` 	str := 'abracadabra'
-``
-`` 	t('slice(list)', sl(list, 0, 5), '[10, 9, 8, 7, 6]')
-`` 	t('slice with OOB lower bound', sl(list, ~5, 2), '[10, 9]')
-`` 	t('slice with OOB upper bound', sl(list, 7, 20), '[3, 2, 1, 0]')
-`` 	t('slice with OOB both bounds', sl(list, 20, 1), '[]')
-``
-`` 	` redefine list using range and reverse, to t those `
-`` 	list := reverse(range(0, 11, 1))
-``
-`` 	t('join() homogeneous lists', stringList(join(
-`` 		slice(list, 0, 5), slice(list, 5, 200)
-`` 	)), '[10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0]')
-`` 	t('join() heterogeneous lists', stringList(join(
-`` 		[1, 2, 3]
-`` 		join([4, 5, 6], ['a', 'b', 'c'])
-`` 	)), '[1, 2, 3, 4, 5, 6, a, b, c]')
-``
-`` 	t('slice() from 0', slice(str, 0, 5), 'abrac')
-`` 	t('slice() from nonzero', slice(str, 2, 4), 'ra')
-`` 	t('slice() with OOB lower bound', slice(str, ~5, 2), 'ab')
-`` 	t('slice() with OOB upper bound', slice(str, 7, 20), 'abra')
-`` 	t('slice() with OOB both bounds', slice(str, 20, 1), '')
-``
-`` 	t('cat() empty list', cat([], '--'), '')
-`` 	t('cat() single-element list', cat(['hello'], '--'), 'hello')
-`` 	t('cat() double-element list', cat(['hello', 'world'], '--'), 'hello--world')
-`` 	t('cat() list containing delimiter', cat(['hello', 'world,hi'], ','), 'hello,world,hi')
-`` 	t('cat() with empty string delimiter', cat(['good', 'bye', 'friend'], ''), 'goodbyefriend')
-`` 	t('cat() with comma separator', cat(['good', 'bye', 'friend'], ', '), 'good, bye, friend')
-`` 	t('cat() with manually indexed composite', cat({
-`` 		0: 'first'
-`` 		1: 'last'
-`` 	}, ' and '), 'first and last')
-`` )
-``
+m('std.range/slice/append/join/cat and stringList')
+(
+	stringList := std.stringList
+	range := std.range
+	reverse := std.reverse
+	slice := std.slice
+	join := std.join
+	cat := std.cat
+
+	` slice returns copies `
+	(
+		st := '12345'
+		li := [1, 2, 3, 4, 5]
+
+		stc := slice(st, 0, len(st))
+		lic := slice(li, 0, len(li))
+		stc.2 := 'x'
+		lic.2 := 'x'
+
+		t('slice(string) should make a copy', st, '12345')
+		t('slice(string) should return a copy', stc, '12x45')
+		t('slice(list) should make a copy', li, [1, 2, 3, 4, 5])
+		t('slice(list) should return a copy', lic, [1, 2, 'x', 4, 5])
+	)
+
+	sl := (l, s, e) => stringList(slice(l, s, e))
+	list := range(10, ~1, ~1)
+	str := 'abracadabra'
+
+	t('slice(list)', sl(list, 0, 5), '[10, 9, 8, 7, 6]')
+	t('slice with OOB lower bound', sl(list, ~5, 2), '[10, 9]')
+	t('slice with OOB upper bound', sl(list, 7, 20), '[3, 2, 1, 0]')
+	t('slice with OOB both bounds', sl(list, 20, 1), '[]')
+
+	` redefine list using range and reverse, to t those `
+	list := reverse(range(0, 11, 1))
+
+	t('join() homogeneous lists', stringList(join(
+		slice(list, 0, 5), slice(list, 5, 200)
+	)), '[10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0]')
+	t('join() heterogeneous lists', stringList(join(
+		[1, 2, 3]
+		join([4, 5, 6], ['a', 'b', 'c'])
+	)), '[1, 2, 3, 4, 5, 6, a, b, c]')
+
+	t('slice() from 0', slice(str, 0, 5), 'abrac')
+	t('slice() from nonzero', slice(str, 2, 4), 'ra')
+	t('slice() with OOB lower bound', slice(str, ~5, 2), 'ab')
+	t('slice() with OOB upper bound', slice(str, 7, 20), 'abra')
+	t('slice() with OOB both bounds', slice(str, 20, 1), '')
+
+	t('cat() empty list', cat([], '--'), '')
+	t('cat() single-element list', cat(['hello'], '--'), 'hello')
+	t('cat() double-element list', cat(['hello', 'world'], '--'), 'hello--world')
+	t('cat() list containing delimiter', cat(['hello', 'world,hi'], ','), 'hello,world,hi')
+	t('cat() with empty string delimiter', cat(['good', 'bye', 'friend'], ''), 'goodbyefriend')
+	t('cat() with comma separator', cat(['good', 'bye', 'friend'], ', '), 'good, bye, friend')
+	t('cat() with manually indexed composite', cat({
+		0: 'first'
+		1: 'last'
+	}, ' and '), 'first and last')
+)
+
 m('hexadecimal conversions, hex & xeh')
 (
 	hex := std.hex
@@ -723,62 +723,62 @@ m('ascii <-> char point conversions and string encode/decode')
 	t('repeated decode/encode, III', decode(encode(decode(encode(s3)))), s3)
 )
 
-`` m('std list: map/filter/reduce[Back]/each/reverse/flatten, join/append')
-`` (
-`` 	map := std.map
-`` 	filter := std.filter
-`` 	reduce := std.reduce
-`` 	reduceBack := std.reduceBack
-`` 	each := std.each
-`` 	reverse := std.reverse
-`` 	flatten := std.flatten
-`` 	append := std.append
-`` 	join := std.join
-``
-`` 	list := [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
-``
-`` 	t('std.map', map(list, n => n * n), [1, 4, 9, 16, 25, 36, 49, 64, 81, 100])
-`` 	t('std.filter', filter(list, n => n % 2 = 0), [2, 4, 6, 8, 10])
-`` 	t('std.reduce', reduce(list, (acc, n) => acc + string(n), '')
-`` 		'12345678910')
-`` 	t('std.reduceBack', reduceBack(list, (acc, n) => acc + string(n), '')
-`` 		'10987654321')
-`` 	t('std.flatten', flatten([[1, 2, 3], [4], [], [[5], 6, 7, [8, 9, 10]]])
-`` 		[1, 2, 3, 4, [5], 6, 7, [8, 9, 10]])
-`` 	t('std.reverse', reverse(list), [10, 9, 8, 7, 6, 5, 4, 3, 2, 1])
-`` 	t('std.join', join(list, list), [1, 2, 3, 4, 5, 6, 7, 8, 9, 10
-`` 		1, 2, 3, 4, 5, 6, 7, 8, 9, 10])
-``
-`` 	` passing index in callback `
-`` 	t('std.map passes index to callback', map(list, (_, i) => i)
-`` 		[0, 1, 2, 3, 4, 5, 6, 7, 8, 9])
-`` 	t('std.filter passes index to callback', filter(list, (_, i) => i % 2 = 1)
-`` 		[2, 4, 6, 8, 10])
-`` 	t('std.reduce passes index to callback'
-`` 		reduce(list, (acc, _, i) => acc + string(i), ''), '0123456789')
-`` 	t('std.reduceBack passes index to callback'
-`` 		reduceBack(list, (acc, _, i) => acc + string(i), ''), '9876543210')
-`` 	(
-`` 		eachAcc := []
-`` 		each(list, (_, i) => eachAcc.len(eachAcc) := i)
-`` 		t('std.each passes index to callback', eachAcc
-`` 			[0, 1, 2, 3, 4, 5, 6, 7, 8, 9])
-`` 	)
-``
-`` 	` each doesn't return anything meaningful `
-`` 	acc := {
-`` 		str: ''
-`` 	}
-`` 	twice := f => x => (f(x), f(x))
-`` 	each(list, twice(n => acc.str := acc.str + string(n)))
-`` 	t('std.each', acc.str, '1122334455667788991010')
-``
-`` 	` append mutates `
-`` 	append(list, list)
-`` 	t('std.append', list, [1, 2, 3, 4, 5, 6, 7, 8, 9, 10
-`` 		1, 2, 3, 4, 5, 6, 7, 8, 9, 10])
-`` )
-``
+m('std list: map/filter/reduce[Back]/each/reverse/flatten, join/append')
+(
+	map := std.map
+	filter := std.filter
+	reduce := std.reduce
+	reduceBack := std.reduceBack
+	each := std.each
+	reverse := std.reverse
+	flatten := std.flatten
+	append := std.append
+	join := std.join
+
+	list := [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+
+	t('std.map', map(list, n => n * n), [1, 4, 9, 16, 25, 36, 49, 64, 81, 100])
+	t('std.filter', filter(list, n => n % 2 = 0), [2, 4, 6, 8, 10])
+	t('std.reduce', reduce(list, (acc, n) => acc + string(n), '')
+		'12345678910')
+	t('std.reduceBack', reduceBack(list, (acc, n) => acc + string(n), '')
+		'10987654321')
+	`` t('std.flatten', flatten([[1, 2, 3], [4], [], [[5], 6, 7, [8, 9, 10]]])
+	`` 	[1, 2, 3, 4, [5], 6, 7, [8, 9, 10]])
+	t('std.reverse', reverse(list), [10, 9, 8, 7, 6, 5, 4, 3, 2, 1])
+	t('std.join', join(list, list), [1, 2, 3, 4, 5, 6, 7, 8, 9, 10
+		1, 2, 3, 4, 5, 6, 7, 8, 9, 10])
+
+	` passing index in callback `
+	t('std.map passes index to callback', map(list, (_, i) => i)
+		[0, 1, 2, 3, 4, 5, 6, 7, 8, 9])
+	t('std.filter passes index to callback', filter(list, (_, i) => i % 2 = 1)
+		[2, 4, 6, 8, 10])
+	t('std.reduce passes index to callback'
+		reduce(list, (acc, _, i) => acc + string(i), ''), '0123456789')
+	t('std.reduceBack passes index to callback'
+		reduceBack(list, (acc, _, i) => acc + string(i), ''), '9876543210')
+	(
+		eachAcc := []
+		each(list, (_, i) => eachAcc.len(eachAcc) := i)
+		t('std.each passes index to callback', eachAcc
+			[0, 1, 2, 3, 4, 5, 6, 7, 8, 9])
+	)
+
+	` each doesn't return anything meaningful `
+	acc := {
+		str: ''
+	}
+	twice := f => x => (f(x), f(x))
+	each(list, twice(n => acc.str := acc.str + string(n)))
+	t('std.each', acc.str, '1122334455667788991010')
+
+	` append mutates `
+	append(list, list)
+	t('std.append', list, [1, 2, 3, 4, 5, 6, 7, 8, 9, 10
+		1, 2, 3, 4, 5, 6, 7, 8, 9, 10])
+)
+
 m('std.format -- the standard library formatter / templater')
 (
 	f := std.format

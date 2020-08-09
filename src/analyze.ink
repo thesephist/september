@@ -16,6 +16,13 @@ ndString := Parse.ndString
 analyzeSubexpr := (node, ctx) => node.type :: {
 	` TODO: recursively analyze all subexpressions of all nodes `
 	(Node.ExprList) -> (
+		declaredNames := (ctx.declaredNames :: {
+			() -> {}
+			_ -> ctx.declaredNames
+		})
+
+		ctx := clone(ctx)
+		ctx.declaredNames := ()
 		each(node.exprs, n => analyzeSubexpr(n, ctx))
 
 		` implement local lexical scope and let-keyword binding `
@@ -23,8 +30,6 @@ analyzeSubexpr := (node, ctx) => node.type :: {
 			node.exprs
 			expr => [expr.type, expr.op, expr.left] = [Node.BinaryExpr, Tok.DefineOp, {type: Node.Ident, val: _}]
 		)
-
-		declaredNames := {}
 		each(defns, defn => declaredNames.(defn.left.val) :: {
 			true -> ()
 			_ -> (
@@ -38,12 +43,20 @@ analyzeSubexpr := (node, ctx) => node.type :: {
 		node
 	)
 	(Node.FnLiteral) -> (
-		analyzeSubexpr(node.body, ctx)
+		declaredNames := {}
+		each(node.args, n => n.type :: {
+			(Node.Ident) -> declaredNames.(n.val) := true
+		})
+
 		[node.body.type, node.body.op] :: {
-			[Node.BinaryExpr, Tok.DefineOp] -> node.body.left.type :: {
-				(Node.Ident) -> node.body.decl? := true
-				(Node.EmptyIdent) -> node.body.decl? := true
-			}
+			[Node.BinaryExpr, Tok.DefineOp] -> (
+				[node.body.left.type] :: {
+					(Node.Ident) -> declaredNames.(node.body.left.val) :: {
+						() -> node.body.decl? := true
+					}
+				}
+				analyzeSubexpr(node.body, ctx)
+			)
 			[Node.MatchExpr, _] -> (
 				cond := node.body.condition
 				[cond.type, cond.op, cond.left] :: {
@@ -59,10 +72,14 @@ analyzeSubexpr := (node, ctx) => node.type :: {
 								tmpMatch
 							]
 						}
-						analyzeSubexpr(node.body, ctx)
 					)
-					_ -> analyzeSubexpr(node.body, ctx)
 				}
+				analyzeSubexpr(node.body, ctx)
+			)
+			[Node.ExprList, _] -> (
+				bodyCtx := clone(ctx)
+				bodyCtx.declaredNames := declaredNames
+				analyzeSubexpr(node.body, bodyCtx)
 			)
 			_ -> analyzeSubexpr(node.body, ctx)
 		}
