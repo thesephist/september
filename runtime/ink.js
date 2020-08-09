@@ -94,7 +94,7 @@ function __ink_xor(a, b) {
 	return a ^ b;
 }
 
-const __Ink_Empty = new Symbol('__Ink_Empty');
+const __Ink_Empty = Symbol('__Ink_Empty');
 
 const __Ink_String = s => {
 	return {

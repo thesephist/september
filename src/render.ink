@@ -122,7 +122,12 @@ renderIdent := node => node.val
 
 renderExprList := node => node.exprs :: {
 	[] -> 'null'
-	_ -> '(() => {' + cat(map(node.exprs, render), ', ') + '})()'
+	_ -> '(() => {' + cat(map(node.exprs, (expr, i) => (
+		i + 1 :: {
+			len(node.exprs) -> 'return ' + render(expr)
+			_ -> render(expr)
+		}
+	)), ', ') + '})()'
 }
 
 renderMatchExpr := node => f('__ink_match({{0}}, [{{1}}])', [
