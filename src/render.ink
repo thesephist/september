@@ -30,7 +30,7 @@ render := node => node.type :: {
 	(Node.ObjectLiteral) -> renderObjectLiteral(node)
 
 	(Node.Ident) -> renderIdent(node)
-	(Node.EmptyIdent) -> 'null'
+	(Node.EmptyIdent) -> renderEmpty()
 
 	(Node.ExprList) -> renderExprList(node)
 	(Node.MatchExpr) -> renderMatchExpr(node)
@@ -39,6 +39,8 @@ render := node => node.type :: {
 }
 
 renderErr := msg => f('throw new Error("{{0}}")', [msg])
+
+renderEmpty := () => '__Ink_Empty'
 
 renderNumberLiteral := node => string(node.val)
 renderStringLiteral := node => '`' + replace(node.val, '`', '\\`') + '`'

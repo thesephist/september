@@ -31,9 +31,9 @@ September makes the following translations.
 
 ### Values
 
+- The null value `()` is translated to `null` in JavaScript.
 - Ink **numbers** are 64-bit floating point numbers, and are translated directly to JavaScript `number` values.
 - Ink **booleans** are `true` and `false` symbols and are translated literally to JavaScript boolean values.
-- The null value `()` in Ink is translated to the `null` symbol in JavaScript.
 - **strings** in Ink are mutable, which means we cannot simply substitute them for JavaScript strings. However, JavaScript strings are heavily optimized, and we want to take advantage of those optimizations. So to represent Ink strings, we wrap JavaScript strings 
 - Translating **composite** values in Ink is more involved. While the value itself behaves like JavaScript objects or arrays, property access and assignment semantics differ, and Ink uses the single composite type for both list and map style data structures. Specifically, we make the following translations:
 	- Composites initialized with `[]` are translated to JavaScript arrays.
