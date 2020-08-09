@@ -16,7 +16,7 @@ x => 9 + x * x
 )
 
 'x' + type('hi') :: {
-	true -> 1
+	true -> 9 & 3 + x * x
 	(double(a, b, c) - 1) -> 2 + 3 = 1 + 4
 	_ -> (
 		log(true)

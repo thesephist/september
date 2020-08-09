@@ -194,7 +194,7 @@ parseBinaryExpr := (left, op, prevPriority, tokens, idx) => (
 							result.err :: {
 								() -> (
 									nodes.(len(nodes) - 1) := result.node
-									S.idx := result.idx + 1
+									S.idx := result.idx
 								)
 								_ -> result
 							}
@@ -205,8 +205,6 @@ parseBinaryExpr := (left, op, prevPriority, tokens, idx) => (
 		})()
 		_ -> result
 	}
-
-	`` TODO: log(map(nodes, ndString))
 
 	each(ops, (op, i) => (
 		node := nodes.(i + 1)

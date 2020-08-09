@@ -29,8 +29,8 @@ main := prog => (
 	type(nodes) :: {
 		` tree of nodes `
 		'composite' -> (
-			each(nodes, node => log(ndString(node)))
-			`` cat(map(nodes, render), ';' + Newline) + Newline
+			`` each(nodes, node => log(ndString(node)))
+			cat(map(nodes, render), ';' + Newline) + Newline
 		)
 		` parse err `
 		'string' -> nodes
