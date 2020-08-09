@@ -15,3 +15,12 @@ y => (
 	log(y)
 	y + 2
 )
+
+a :: {
+	true -> 1
+	(double(x) - 1) -> 2 + 3
+	_ -> (
+		log(true)
+		log(~false)
+	)
+}

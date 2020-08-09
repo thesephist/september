@@ -73,7 +73,6 @@ parse := tokens => (
 		() -> nodes
 		_ -> (
 			result := parseExpr(tokens, idx)
-			log('parsed expr -> ' + string(result))
 			result.err :: {
 				() -> (
 					nodes.len(nodes) := result.node
@@ -236,6 +235,7 @@ parseExpr := (tokens, idx) => (
 								{
 									node: {
 										type: Node.MatchExpr
+										condition: condition
 										clauses: clauses
 									}
 									idx: S.idx
@@ -371,7 +371,7 @@ parseAtom := (tokens, idx) => tokens.(idx) :: {
 					(Tok.EmptyIdent) -> tokens.(idx + 1).type :: {
 						(Tok.FunctionArrow) -> parseFnLiteral(tokens, idx)
 						_ -> consumePotentialFunctionCall({
-							type: Node.Ident
+							type: Node.EmptyIdent
 							val: tok.val
 						}, idx + 1)
 					}
@@ -517,7 +517,7 @@ parseFnCall := (fnNode, tokens, idx) => (
 	tokens.(idx + 1) :: {
 		() -> {
 			node: ()
-			idx: idx
+			idx: idx + 1
 			err: 'unexpected end of input, expected fn args list'
 		}
 		_ -> (
@@ -554,3 +554,73 @@ parseFnCall := (fnNode, tokens, idx) => (
 	}
 )
 
+parseMatchBody := (tokens, idx) => tokens.(idx + 1) :: {
+	() -> {
+		node: ()
+		idx: idx + 1
+		err: 'unexpected end of input, expected {'
+	}
+	_ -> (
+		clauses := []
+		result := (sub := (idx) => (
+			result := parseMatchClause(tokens, idx)
+			result.err :: {
+				() -> (
+					clauses.len(clauses) := result.node
+					tokens.(result.idx) :: {
+						() -> {
+							node: ()
+							idx: result.idx
+							err: 'unexpected end of input, expected }'
+						}
+						_ -> (
+							sub(result.idx)
+						)
+					}
+				)
+				_ -> result
+			}
+		))(idx + 1)
+
+		{
+			node: clauses
+			idx: result.idx + 1 `` RBrace
+		}
+	)
+}
+
+parseMatchClause := (tokens, idx) => (
+	result := parseAtom(tokens, idx)
+	atom := result.node
+
+	result.err :: {
+		() -> tokens.(result.idx) :: {
+			() -> {
+				node: ()
+				idx: result.idx
+				err: 'unexpected end of input, expected ->'
+			}
+			_ -> tokens.(result.idx + 1) :: {
+				() -> {
+					node: ()
+					idx: result.idx + 1
+					err: 'unexpected end of input, expected expression in clause following ->'
+				}
+				_ -> (
+					result := parseExpr(tokens, result.idx + 1)
+					result.err :: {
+						() -> {
+							node: {
+								target: atom
+								expr: result.node
+							}
+							idx: result.idx
+						}
+						_ -> result
+					}
+				)
+			}
+		}
+		_ -> result
+	}
+)

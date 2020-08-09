@@ -27,8 +27,10 @@ render := node => node.type :: {
 	(Node.FnLiteral) -> renderFnLiteral(node)
 
 	(Node.Ident) -> renderIdent(node)
+	(Node.EmptyIdent) -> 'null'
 
 	(Node.ExprList) -> renderExprList(node)
+	(Node.MatchExpr) -> renderMatchExpr(node)
 
 	_ -> '(( "not implemented" ))'
 }
@@ -83,3 +85,13 @@ renderBinaryExpr := node => node.op :: {
 renderIdent := node => node.val
 
 renderExprList := node => '(' + cat(map(node.exprs, render), ', ') + ')'
+
+renderMatchExpr := node => f('__ink_match({{0}}, [{{1}}])', [
+	render(node.condition)
+	cat(map(node.clauses, renderMatchClause), ', ')
+])
+
+renderMatchClause := node => f('[{{0}}, () => {{1}}]', [
+	render(node.target)
+	render(node.expr)
+])
