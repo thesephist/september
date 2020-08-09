@@ -389,39 +389,38 @@ parseAtom := (tokens, idx) => tokens.(idx) :: {
 											idx: result.idx
 											err: 'unexpected end of input, expected )'
 										}
-										_ -> (
-											sub(result.idx)
-										)
+										_ -> tokens.(result.idx).type :: {
+											(Tok.RParen) -> {
+												node: result.node
+												idx: result.idx + 1 `` RParen
+											}
+											_ -> sub(result.idx)
+										}
 									}
 								)
 								_ -> result
 							}
 						))(idx + 1)
 
-						S := {
-							idx: result.idx + 1
-						}
-						tokens.(S.idx) :: {
+						tokens.(result.idx) :: {
 							() -> {
 								node: ()
 								idx: result.idx
 								err: 'unexpected end of input, expected continued expression'
 							}
-							_ -> tokens.(S.idx).type :: {
+							_ -> tokens.(result.idx).type :: {
 								(Tok.FunctionArrow) -> parseFnLiteral(tokens, idx)
 								_ -> consumePotentialFunctionCall({
 									type: Node.ExprList
 									exprs: exprs
-								}, S.idx)
+								}, result.idx)
 							}
 						}
 					)
 					(Tok.LBrace) -> (
 						` TODO: implement object literal `
 					)
-					(Tok.LBracket) -> (
-						` TODO: implement list literal `
-					)
+					(Tok.LBracket) -> parseListLiteral(tokens, idx)
 					_ -> {
 						node: ()
 						idx: idx
@@ -432,6 +431,42 @@ parseAtom := (tokens, idx) => tokens.(idx) :: {
 		}
 	}
 }
+
+parseListLiteral := (tokens, idx) => (
+	exprs := []
+	result := (sub := (idx) => (
+		result := parseExpr(tokens, idx)
+		expr := result.node
+		result.err :: {
+			() -> (
+				exprs.len(exprs) := expr
+				tokens.(result.idx) :: {
+					() -> {
+						node: ()
+						idx: result.idx
+						err: 'unexpected end of input, expected )'
+					}
+					_ -> tokens.(result.idx).type :: {
+						(Tok.RBracket) -> {
+							node: result.node
+							idx: result.idx + 1 `` RBracket
+						}
+						_ -> sub(result.idx)
+					}
+				}
+			)
+			_ -> result
+		}
+	))(idx + 1) `` LBracket
+
+	{
+		node: {
+			type: Node.ListLiteral
+			exprs: exprs
+		}
+		idx: result.idx
+	}
+)
 
 parseFnLiteral := (tokens, idx) => (
 	args := []
