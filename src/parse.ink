@@ -121,8 +121,8 @@ parse := tokens => (
 				)
 				_ -> f('parse err @ {{line}}:{{col}}: {{err}}', {
 					err: result.err
-					line: tokens.(result.idx).line
-					col: tokens.(result.idx).col
+					line: tokens.(result.idx - 1).line
+					col: tokens.(result.idx - 1).col
 				})
 			}
 		)
@@ -424,31 +424,37 @@ parseAtom := (tokens, idx) => tokens.(idx) :: {
 						exprs := []
 						result := parseGroup(tokens, idx, parseExpr, exprs, Tok.RParen)
 
-						tokens.(result.idx) :: {
-							() -> {
-								node: ()
-								idx: result.idx
-								err: 'unexpected end of input, expected continued expression'
+						result.err :: {
+							() -> tokens.(result.idx) :: {
+								() -> {
+									node: ()
+									idx: result.idx
+									err: 'unexpected end of input, expected continued expression'
+								}
+								_ -> tokens.(result.idx).type :: {
+									(Tok.FunctionArrow) -> parseFnLiteral(tokens, idx)
+									_ -> consumePotentialFunctionCall({
+										type: Node.ExprList
+										exprs: exprs
+									}, result.idx)
+								}
 							}
-							_ -> tokens.(result.idx).type :: {
-								(Tok.FunctionArrow) -> parseFnLiteral(tokens, idx)
-								_ -> consumePotentialFunctionCall({
-									type: Node.ExprList
-									exprs: exprs
-								}, result.idx)
-							}
+							_ -> result
 						}
 					)
 					(Tok.LBrace) -> (
 						entries := []
 						result := parseGroup(tokens, idx, parseObjectEntry, entries, Tok.RBrace)
 
-						{
-							node: {
-								type: Node.ObjectLiteral
-								entries: entries
+						result.err :: {
+							() -> {
+								node: {
+									type: Node.ObjectLiteral
+									entries: entries
+								}
+								idx: result.idx
 							}
-							idx: result.idx
+							_ -> result
 						}
 					)
 					(Tok.LBracket) -> parseListLiteral(tokens, idx)
@@ -502,12 +508,15 @@ parseListLiteral := (tokens, idx) => (
 	exprs := []
 	result := parseGroup(tokens, idx, parseExpr, exprs, Tok.RBracket)
 
-	{
-		node: {
-			type: Node.ListLiteral
-			exprs: exprs
+	result.err :: {
+		() -> {
+			node: {
+				type: Node.ListLiteral
+				exprs: exprs
+			}
+			idx: result.idx
 		}
-		idx: result.idx
+		_ -> result
 	}
 )
 
@@ -558,7 +567,10 @@ parseFnLiteral := (tokens, idx) => (
 			)
 			(Tok.LParen) -> (
 				result := parseGroup(tokens, idx, parseExpr, args, Tok.RParen)
-				processBody(result.idx)
+				result.err :: {
+					() -> processBody(result.idx)
+					_ -> result
+				}
 			)
 			_ -> {
 				node: ()
@@ -580,14 +592,16 @@ parseFnCall := (fnNode, tokens, idx) => (
 		}
 		_ -> (
 			result := parseGroup(tokens, idx, parseExpr, args, Tok.RParen)
-
-			{
-				node: {
-					type: Node.FnCall
-					fn: fnNode
-					args: args
+			result.err :: {
+				() -> {
+					node: {
+						type: Node.FnCall
+						fn: fnNode
+						args: args
+					}
+					idx: result.idx
 				}
-				idx: result.idx
+				_ -> result
 			}
 		)
 	}
@@ -603,9 +617,12 @@ parseMatchBody := (tokens, idx) => tokens.(idx + 1) :: {
 		clauses := []
 		result := parseGroup(tokens, idx, parseMatchClause, clauses, Tok.RBrace)
 
-		{
-			node: clauses
-			idx: result.idx
+		result.err :: {
+			() -> {
+				node: clauses
+				idx: result.idx
+			}
+			_ -> result
 		}
 	)
 }
