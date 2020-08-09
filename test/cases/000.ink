@@ -1,14 +1,12 @@
+log := x => (console.log)('' + x)
+
 a := 2
-b := 3
+log(a)
+a := 5
+log(a)
 
-double := x => 2 * x
+fn := x => a := x
 
-(console.log)(double(a + b))
+x := 12
+(a := x)
 
-even? := n => n % 2 :: {
-	0 -> true
-	_ -> false
-}
-(console.log)(even?(2))
-(console.log)(even?(3))
-(console.log)(even?(5))

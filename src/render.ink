@@ -14,6 +14,7 @@ Tok := Tokenize.Tok
 
 Parse := load('parse')
 Node := Parse.Node
+ndString := Parse.ndString
 
 render := node => node.type :: {
 	(Node.FnCall) -> renderFnCall(node)
@@ -68,7 +69,10 @@ renderFnArg := (node, i) => node.type :: {
 
 renderFnLiteral := node => f('({{0}}) => {{1}}', [
 	cat(map(node.args, renderFnArg), ', ')
-	render(node.body)
+	node.body.type :: {
+		(Node.ObjectLiteral) -> '(' + render(node.body) + ')'
+		_ -> render(node.body)
+	}
 ])
 
 renderFnCall := node => f(

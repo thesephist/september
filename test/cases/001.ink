@@ -1,43 +1,21 @@
-2 * 3.14 + 4, 5 - 6 / 7
-'h`ello' + 'world'
+a := 2
+b := 3
 
-true & false
-~~4
+double := x => 2 * x
 
-`` empty expressions
-() => ()
-()
-{}
-[]
+(console.log)(double(a + b))
 
-window.location.href
-obj.('hi', a + b)
-do()
+log := x => (console.log)('' + x)
 
-(console.log)('hi', 2)
-
-x => 9 + x * x
-(y, _) => (
-	log(x + y, z)
-	y + 2
-)
-
-'x' + type('hi') :: {
-	true -> 9 & 3 + x * x
-	` block comment
-		that spans multiple lines `
-	(double(a, b, c) - 1) -> 2 + 3 = 1 + 4
-	_ -> (
-		log(true)
-		log(~false)
-	)
+even? := n => n % 2 :: {
+	0 -> true
+	_ -> false
 }
+log(even?(2))
+log(even?(3))
+log(even?(5))
 
-[1, 2, '3', 4 + 'a']
-{
-	key: 'value'
-	other(this): 9.8690
-	(2 + 3): {
-		test: 'tes' + 'sler'
-	}
-}
+log('Hello, World!')
+
+fn := y => {hi: y}
+log(fn('hello').hi)

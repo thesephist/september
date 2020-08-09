@@ -16,6 +16,7 @@ build := load('../src/build').main
 translate := load('../src/translate').main
 
 Newline := char(10)
+Tab := char(9)
 PreamblePath := './runtime/ink.js'
 
 given := (cli.parsed)()
@@ -32,6 +33,16 @@ given.verb :: {
 			readFile(path, data => out(translate(data)))
 		))
 	)
+	'translate-full' -> readFile(PreamblePath, preamble => (
+		js := [preamble]
+		files := given.args
+		each(files, path => readFile(path, data => (
+			js.len(js) := translate(data)
+			len(files) + 1 = len(js) :: {
+				true -> log(cat(js, Newline))
+			}
+		)))
+	))
 	'run' -> readFile(PreamblePath, preamble => (
 		js := [preamble]
 		files := given.args
@@ -51,8 +62,13 @@ given.verb :: {
 		might end up being the default behavior `
 	'repl' -> log('command "repl" not implemented!')
 	_ -> (
+		commands := [
+			'translate'
+			'translate-full'
+			'run'
+		]
 		log(f('command "{{ verb }}" not recognized', given))
-		log('September supports: build, translate, run, repl')
-		log(given)
+		log('September supports: ' + Newline + Tab +
+				cat(commands, Newline + Tab))
 	)
 }
