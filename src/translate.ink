@@ -15,6 +15,9 @@ Parse := load('parse')
 parse := Parse.parse
 ndString := Parse.ndString
 
+Analyze := load('analyze')
+analyze := Analyze.analyze
+
 Render := load('render')
 render := Render.render
 
@@ -30,6 +33,7 @@ main := prog => (
 		` tree of nodes `
 		'composite' -> (
 			`` each(nodes, node => log(ndString(node)))
+			nodes := map(nodes, analyze)
 			cat(map(nodes, render), ';' + Newline) + Newline
 		)
 		` parse err `
