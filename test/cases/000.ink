@@ -11,14 +11,14 @@ obj.('hi', a + b)
 (console.log)('hi')
 
 x => 9 + x * x
-y => (
-	log(y)
+(y, _) => (
+	log(x + y, z)
 	y + 2
 )
 
 a :: {
 	true -> 1
-	(double(x) - 1) -> 2 + 3
+	(double(a, b, c) - 1) -> 2 + 3
 	_ -> (
 		log(true)
 		log(~false)

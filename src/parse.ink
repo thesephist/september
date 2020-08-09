@@ -280,7 +280,7 @@ parseExpr := (tokens, idx) => (
 						_ -> {
 							node: ()
 							idx: S.idx
-							err: 'not implemented!'
+							err: 'token ' + tkString(next) + ' not implemented! (parseExpr)'
 						}
 					}
 				)
@@ -425,7 +425,7 @@ parseAtom := (tokens, idx) => tokens.(idx) :: {
 					_ -> {
 						node: ()
 						idx: idx
-						err: 'not implemented!'
+						err: 'not implemented! (parseAtom)'
 					}
 				}
 			)
@@ -491,9 +491,13 @@ parseFnLiteral := (tokens, idx) => (
 									idx: result.idx
 									err: 'unexpected end of input, expected )'
 								}
-								_ -> (
-									sub(result.idx)
-								)
+								_ -> tokens.(result.idx).type :: {
+									(Tok.RParen) -> {
+										node: result.node
+										idx: result.idx + 1 `` RParen
+									}
+									_ -> sub(result.idx)
+								}
 							}
 						)
 						_ -> result
@@ -533,9 +537,13 @@ parseFnCall := (fnNode, tokens, idx) => (
 								idx: result.idx
 								err: 'unexpected end of input, expected )'
 							}
-							_ -> (
-								sub(result.idx)
-							)
+							_ -> tokens.(result.idx).type :: {
+								(Tok.RParen) -> {
+									node: result.node
+									idx: result.idx + 1 `` RParen
+								}
+								_ -> sub(result.idx)
+							}
 						}
 					)
 					_ -> result
@@ -548,7 +556,7 @@ parseFnCall := (fnNode, tokens, idx) => (
 					fn: fnNode
 					args: args
 				}
-				idx: result.idx + 1 `` RParen
+				idx: result.idx
 			}
 		)
 	}

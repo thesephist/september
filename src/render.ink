@@ -41,8 +41,14 @@ renderNumberLiteral := node => string(node.val)
 renderStringLiteral := node => '`' + replace(node.val, '`', '\\`') + '`'
 renderBooleanLiteral := node => string(node.val)
 
+renderFnArg := (node, i) => node.type :: {
+	(Node.EmptyIdent) -> '__' + string(i) `` avoid duplicate arg names
+	(Node.Ident) -> renderIdent(node)
+	_ -> '__' + string(i)
+}
+
 renderFnLiteral := node => f('({{0}}) => {{1}}', [
-	cat(map(node.args, render), ', ')
+	cat(map(node.args, renderFnArg), ', ')
 	render(node.body)
 ])
 
