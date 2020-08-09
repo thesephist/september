@@ -27,6 +27,7 @@ render := node => node.type :: {
 	(Node.FnLiteral) -> renderFnLiteral(node)
 
 	(Node.ListLiteral) -> renderListLiteral(node)
+	(Node.ObjectLiteral) -> renderObjectLiteral(node)
 
 	(Node.Ident) -> renderIdent(node)
 	(Node.EmptyIdent) -> 'null'
@@ -44,6 +45,12 @@ renderStringLiteral := node => '`' + replace(node.val, '`', '\\`') + '`'
 renderBooleanLiteral := node => string(node.val)
 
 renderListLiteral := node => '[' + cat(map(node.exprs, render), ', ') + ']'
+
+renderObjectEntry := node => f('{{0}}: {{1}}', [
+	render(node.key)
+	render(node.val)
+])
+renderObjectLiteral := node => '{' + cat(map(node.entries, renderObjectEntry), ', ') + '}'
 
 renderFnArg := (node, i) => node.type :: {
 	(Node.EmptyIdent) -> '__' + string(i) `` avoid duplicate arg names

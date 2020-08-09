@@ -418,7 +418,39 @@ parseAtom := (tokens, idx) => tokens.(idx) :: {
 						}
 					)
 					(Tok.LBrace) -> (
-						` TODO: implement object literal `
+						entries := []
+						result := (sub := (idx) => (
+							result := parseObjectEntry(tokens, idx)
+							entry := result.node
+							result.err :: {
+								() -> (
+									entries.len(entries) := entry
+									tokens.(result.idx) :: {
+										() -> {
+											node: ()
+											idx: result.idx
+											err: 'unexpected end of input, expected }'
+										}
+										_ -> tokens.(result.idx).type :: {
+											(Tok.RBrace) -> {
+												node: result.node
+												idx: result.idx + 1 `` RBrace
+											}
+											_ -> sub(result.idx)
+										}
+									}
+								)
+								_ -> result
+							}
+						))(idx + 1) `` LBrace
+
+						{
+							node: {
+								type: Node.ObjectLiteral
+								entries: entries
+							}
+							idx: result.idx
+						}
 					)
 					(Tok.LBracket) -> parseListLiteral(tokens, idx)
 					_ -> {
@@ -656,6 +688,42 @@ parseMatchClause := (tokens, idx) => (
 							node: {
 								target: atom
 								expr: result.node
+							}
+							idx: result.idx
+						}
+						_ -> result
+					}
+				)
+			}
+		}
+		_ -> result
+	}
+)
+
+parseObjectEntry := (tokens, idx) => (
+	result := parseExpr(tokens, idx)
+	atom := result.node
+
+	result.err :: {
+		() -> tokens.(result.idx) :: {
+			() -> {
+				node: ()
+				idx: result.idx
+				err: 'unexpected end of input, expected :'
+			}
+			_ -> tokens.(result.idx + 1) :: {
+				() -> {
+					node: ()
+					idx: result.idx + 1
+					err: 'unexpected end of input, expected expression in clause following ->'
+				}
+				_ -> (
+					result := parseExpr(tokens, result.idx + 1)
+					result.err :: {
+						() -> {
+							node: {
+								key: atom
+								val: result.node
 							}
 							idx: result.idx
 						}

@@ -10,6 +10,7 @@ obj.('hi', a + b)
 
 (console.log)('hi')
 
+``() => ()
 x => 9 + x * x
 (y, _) => (
 	log(x + y, z)
@@ -25,4 +26,13 @@ a :: {
 	)
 }
 
+``[]
 [1, 2, '3', 4 + 'a']
+``{}
+{
+	key: 'value'
+	other: 9.8690
+	max: {
+		test: 'tes' + 'sler'
+	}
+}
