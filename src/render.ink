@@ -118,7 +118,11 @@ renderBinaryExpr := node => node.op :: {
 	_ -> renderErr(f('BinaryExpr with unknown op: {{0}}', [node.op]))
 }
 
-renderIdent := node => node.val
+renderIdent := node => (
+	ident := replace(node.val, '?', '__ink_qm__')
+	ident := replace(ident, '!', '__ink_em__')
+	replace(ident, '@', '__ink_am__')
+)
 
 renderExprList := node => node.exprs :: {
 	[] -> 'null'
@@ -135,7 +139,7 @@ renderMatchExpr := node => f('__ink_match({{0}}, [{{1}}])', [
 	cat(map(node.clauses, renderMatchClause), ', ')
 ])
 
-renderMatchClause := node => f('[{{0}}, () => {{1}}]', [
+renderMatchClause := node => f('[() => {{0}}, () => {{1}}]', [
 	render(node.target)
 	render(node.expr)
 ])

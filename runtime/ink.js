@@ -11,6 +11,7 @@
  * __ink_and
  * __ink_or
  * __ink_xor
+ * __ink_match
  *
  * Ink types
  * __Ink_Empty
@@ -92,6 +93,15 @@ function __ink_xor(a, b) {
 	}
 
 	return a ^ b;
+}
+
+function __ink_match(cond, clauses) {
+    for (const [target, expr] of clauses) {
+        if (__ink_eq(cond, target())) {
+            return expr();
+        }
+    }
+    return null;
 }
 
 const __Ink_Empty = Symbol('__Ink_Empty');
