@@ -101,7 +101,10 @@ renderBinaryExpr := node => node.op :: {
 
 renderIdent := node => node.val
 
-renderExprList := node => '(' + cat(map(node.exprs, render), ', ') + ')'
+renderExprList := node => node.exprs :: {
+	[] -> 'null'
+	_ -> '(' + cat(map(node.exprs, render), ', ') + ')'
+}
 
 renderMatchExpr := node => f('__ink_match({{0}}, [{{1}}])', [
 	render(node.condition)

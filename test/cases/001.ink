@@ -3,6 +3,7 @@
 
 true & false
 ~~4
+()
 
 window.location.href
 obj.('hi', a + b)

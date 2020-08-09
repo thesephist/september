@@ -422,30 +422,36 @@ parseAtom := (tokens, idx) => tokens.(idx) :: {
 					}
 					(Tok.LParen) -> (
 						exprs := []
-						result := (sub := (idx) => (
-							result := parseExpr(tokens, idx)
-							expr := result.node
-							result.err :: {
-								() -> (
-									exprs.len(exprs) := expr
-									tokens.(result.idx) :: {
-										() -> {
-											node: ()
-											idx: result.idx
-											err: 'unexpected end of input, expected )'
-										}
-										_ -> tokens.(result.idx).type :: {
-											(Tok.RParen) -> {
-												node: result.node
-												idx: result.idx + 1 `` RParen
-											}
-											_ -> sub(result.idx)
-										}
-									}
-								)
-								_ -> result
+						result := (sub := (idx) => tokens.(idx) :: {
+							{type: Tok.RParen, val: _, line: _, col: _} -> {
+								node: ()
+								idx: idx + 1 `` RParen
 							}
-						))(idx + 1)
+							_ -> (
+								result := parseExpr(tokens, idx)
+								expr := result.node
+								result.err :: {
+									() -> (
+										exprs.len(exprs) := expr
+										tokens.(result.idx) :: {
+											() -> {
+												node: ()
+												idx: result.idx
+												err: 'unexpected end of input, expected )'
+											}
+											_ -> tokens.(result.idx).type :: {
+												(Tok.RParen) -> {
+													node: result.node
+													idx: result.idx + 1 `` RParen
+												}
+												_ -> sub(result.idx)
+											}
+										}
+									)
+									_ -> result
+								}
+							)
+						})(idx + 1)
 
 						tokens.(result.idx) :: {
 							() -> {
