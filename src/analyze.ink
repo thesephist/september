@@ -12,6 +12,7 @@ Node := Parse.Node
 ndString := Parse.ndString
 
 analyzeSubexpr := (node, ctx) => node.type :: {
+	` TODO: recursively analyze all subexpressions of all nodes `
 	(Node.ExprList) -> (
 		ctx := {scopeOwner: node}
 		each(node.exprs, n => analyzeSubexpr(n, ctx))
@@ -21,19 +22,22 @@ analyzeSubexpr := (node, ctx) => node.type :: {
 		analyzeSubexpr(node.body, {scopeOwner: node})
 		node
 	)
-	(Node.BinaryExpr) -> node.op :: {
-		(Tok.DefineOp) -> ctx.scopeOwner :: {
-			() -> node
-			{type: Node.ExprList, exprs: _} -> (
-				node.decl? := true
-			)
-			{type: Node.FnLiteral, args: _, body: _} -> (
-				node.decl? := true
-			)
-			_ -> node
+	(Node.BinaryExpr) -> (
+		node.op :: {
+			(Tok.DefineOp) -> ctx.scopeOwner :: {
+				() -> node
+				{type: Node.ExprList, exprs: _} -> (
+					node.decl? := true
+				)
+				{type: Node.FnLiteral, args: _, body: _} -> (
+					node.decl? := true
+				)
+			}
 		}
-		_ -> node
-	}
+		analyzeSubexpr(node.left, ctx)
+		analyzeSubexpr(node.right, ctx)
+		node
+	)
 	_ -> node
 }
 

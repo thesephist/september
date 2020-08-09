@@ -61,6 +61,18 @@ renderObjectEntry := node => f('{{0}}: {{1}}', [
 ])
 renderObjectLiteral := node => '{' + cat(map(node.entries, renderObjectEntry), ', ') + '}'
 
+` some expressions (like assignments to variables ) are expressions in Ink
+	but statements in JS, and cannot be returned. This helper fn adds a workaround
+	so that we can "return assignments" by returning a reference to the assigned variable. `
+renderAsReturn := node => [node.type, node.op, node.left] :: {
+	[
+		Node.BinaryExpr
+		Tok.DefineOp
+		{type: Node.Ident, val: _}
+	] -> f('{{0}}; return {{1}}', [render(node), render(node.left)])
+	_ -> f('return {{0}}', [render(node)])
+}
+
 renderFnArg := (node, i) => node.type :: {
 	(Node.EmptyIdent) -> '__' + string(i) `` avoid duplicate arg names
 	(Node.Ident) -> renderIdent(node)
@@ -71,7 +83,8 @@ renderFnLiteral := node => f('({{0}}) => {{1}}', [
 	cat(map(node.args, renderFnArg), ', ')
 	node.body.type :: {
 		(Node.ObjectLiteral) -> '(' + render(node.body) + ')'
-		_ -> '{return ' + render(node.body) + '}'
+		(Node.ExprList) -> render(node.body)
+		_ -> '{' + renderAsReturn(node.body) + '}'
 	}
 ])
 
@@ -132,7 +145,7 @@ renderExprList := node => node.exprs :: {
 	[] -> 'null'
 	_ -> '(() => {' + cat(map(node.exprs, (expr, i) => (
 		i + 1 :: {
-			len(node.exprs) -> 'return ' + render(expr)
+			len(node.exprs) -> renderAsReturn(expr)
 			_ -> render(expr)
 		}
 	)), ', ') + '})()'
