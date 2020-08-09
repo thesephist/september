@@ -1,6 +1,8 @@
 ` local and global variable scopes `
 
-log := x => (console.log)('' + x)
+std := load('./runtime/std')
+
+log := std.log
 
 log('should print 2, 5, 5, 5, 20, 5')
 
@@ -27,3 +29,9 @@ scoped := () => (
 )
 scoped()
 log(a)
+
+log('should print {x: yyy}, 2')
+
+a := {}
+log(a.x := 'yyy')
+log(({}.to := 2).to)

@@ -40,7 +40,13 @@ analyzeSubexpr := (node, ctx) => node.type :: {
 		analyzeSubexpr(node.body, ctx)
 		[node.body.type, node.body.op] :: {
 			[Node.BinaryExpr, Tok.DefineOp] -> node.body.decl? := true
+			[Node.MatchExpr, _] -> ()
 		}
+		node
+	)
+	(Node.MatchExpr) -> (
+		analyzeSubexpr(node.condition, ctx)
+		each(node.clauses, n => analyzeSubexpr(n, ctx))
 		node
 	)
 	(Node.BinaryExpr) -> (

@@ -2,6 +2,7 @@ std := load('../vendor/std')
 
 log := std.log
 f := std.format
+clone := std.clone
 map := std.map
 cat := std.cat
 
@@ -36,7 +37,7 @@ render := node => node.type :: {
 	(Node.ExprList) -> renderExprList(node)
 	(Node.MatchExpr) -> renderMatchExpr(node)
 
-	_ -> '(( "not implemented" ))'
+	_ -> 'throw new Error("not implemented!")'
 }
 
 renderErr := msg => f('throw new Error("{{0}}")', [msg])
@@ -124,14 +125,25 @@ renderBinaryExpr := node => node.op :: {
 	(Tok.LtOp) -> f('{{0}} < {{1}}', [render(node.left), render(node.right)])
 
 	(Tok.DefineOp) -> node.decl? :: {
-		true -> [node.left.type, node.left.op] :: {
+		true -> f('let {{0}} = {{1}}', [render(node.left), render(node.right)])
+		_ -> [node.left.type, node.left.op] :: {
 			[Node.BinaryExpr, Tok.AccessorOp] -> (
-				f('{{0}} = {{1}}', [renderDefineTarget(node.left), render(node.right)])
+				tmpDfn := clone(node.left)
+				tmpDfn.left := {
+					type: Node.Ident
+					val: '__ink_assgn_trgt'
+				}
+				f(
+					'(() => {let __ink_assgn_trgt = {{0}}; {{1}} = {{2}}; return __ink_assgn_trgt})()'
+					[
+						render(node.left.left)
+						renderDefineTarget(tmpDfn)
+						render(node.right)
+					]
+				)
 			)
-			_ -> f('let {{0}} = {{1}}', [render(node.left), render(node.right)])
+			_ -> f('{{0}} = {{1}}', [renderDefineTarget(node.left), render(node.right)])
 		}
-		false -> f('{{0}} = {{1}}', [renderDefineTarget(node.left), render(node.right)])
-		_ -> f('{{0}} = {{1}}', [renderDefineTarget(node.left), render(node.right)])
 	}
 
 	(Tok.AccessorOp) -> node.right.type :: {

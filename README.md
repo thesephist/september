@@ -40,7 +40,8 @@ September makes the following translations.
 - Translating **composite** values in Ink is more involved. While the value itself behaves like JavaScript objects or arrays, property access and assignment semantics differ, and Ink uses the single composite type for both list and map style data structures. Specifically, we make the following translations:
 	- Composites initialized with `[]` are translated to JavaScript arrays.
 	- Composites initialized with `{}` are translated to JavaScript object literals.
-	- Assignment to a composite value is _always_ translated directly. i.e. The Ink program `c.(k) := v` is always translated to `c[k] = v`. Notably, `c.k := v` is also translated to `c[k] = v` because `k` can be a numeric identifier in Ink, as in `c.2 := 3`.
+	- Assignment to a composite value is translated directly. i.e. The Ink program `c.(k) := v` is translated to `c[k] = v`. Notably, `c.k := v` is also translated to `c[k] = v` because `k` can be a numeric identifier in Ink, as in `c.2 := 3`.
+		- Assignment `c.k := v` evaluates to `c` in Ink, but `v` in JavaScript. The compiler wraps assignments to composite properties appropriate so this semantic is preserved.
 	- Property access like `c[k]` is wrapped with a nullability check. This is because accessing properties in Ink returns `()` but `undefined` in JavaScript, so we need to check if the returned value is `undefined` and return `null` instead if so.
 
 Ink has a special value `_` (the empty identifier), which is mapped to a `Symbol` in JavaScript. The empty identifier has special semantics in equality checks, defined in `__ink_eq`.
@@ -79,7 +80,8 @@ When calling a function that invokes tail calls (calls itself in a conditional b
 
 Testing
 
-- Test should run through all valid test cases in `test/cases/` and compare that the output for programs running on Node.js matches the output when run on Ink's Go interpreter.
+- Tests should run through all valid test cases in `test/cases/` and compare that the output for programs running on Node.js matches the output when run on Ink's Go interpreter.
+- Run the full Ink unit test suite in `thesephist/ink` against the September compiler and Node.js runtime.
 
 Torus interop layer
 
