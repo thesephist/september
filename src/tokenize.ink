@@ -233,10 +233,22 @@ tokenize := s => (
 						)
 					}
 					_ -> (
-
-						(sub := () => (
-							`` TODO: handle block comments
-						))()
+						` block comment, keep taking until end of block `
+						S.i := S.i + 1
+						(sub := () => s.(S.i) :: {
+							'`' -> S.col := S.col + 1
+							Newline -> (
+								S.i := S.i + 1
+								S.line := S.line + 1
+								S.col := 0
+								sub()
+							)
+							_ -> (
+								S.i := S.i + 1
+								S.col := S.col + 1
+								sub()
+							)
+						})()
 						sub()
 					)
 				}
