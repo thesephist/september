@@ -329,6 +329,9 @@ const __Ink_String = s => {
 		valueOf() {
 			return s;
 		},
+		get length() {
+			return s.length;
+		},
 	}
 }
 

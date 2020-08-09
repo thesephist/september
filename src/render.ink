@@ -134,11 +134,20 @@ renderBinaryExpr := node => node.op :: {
 					val: '__ink_assgn_trgt'
 				}
 				f(
-					'(() => {let __ink_assgn_trgt = {{0}}; {{1}} = {{2}}; return __ink_assgn_trgt})()'
+					cat([
+						'(() => {let __ink_assgn_trgt = __as_ink_string({{0}})'
+						'__is_ink_string(__ink_assgn_trgt) ? __ink_assgn_trgt.assign({{3}}, {{2}}) : {{1}} = {{2}}'
+						'return __ink_assgn_trgt})()'
+					], '; ')
 					[
 						render(node.left.left)
+
+						` composite assignment `
 						renderDefineTarget(tmpDfn)
 						render(node.right)
+
+						` string assignment `
+						render(node.left.right)
 					]
 				)
 			)
