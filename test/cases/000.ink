@@ -10,4 +10,7 @@ log('000.ink~')
 
 cat := std.cat
 
-`` log(cat(['a', 'b'], '--'))
+log('should say 2')
+log(type('ab'))
+log(len('ab'))
+log(cat(['a', 'b'], '--'))

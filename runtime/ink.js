@@ -16,6 +16,7 @@ function __ink_in(cb) {
 }
 
 function out(s) {
+	s = __as_ink_string(s);
 	if (__NODE) {
 		process.stdout.write(string(s).valueOf());
 	} else {
@@ -120,9 +121,20 @@ function __is_ink_string(x) {
 	return x.__is_ink_string;
 }
 
+// both JS native strings and __Ink_Strings are valid in the runtime
+// semantics but we want to coerce values to __Ink_Strings
+// within runtime builtins; this utility fn is useful for this.
+function __as_ink_string(x) {
+	if (typeof x === 'string') {
+		return __Ink_String(x);
+	}
+	return x;
+}
+
 function string(x) {
+	x = __as_ink_string(x);
 	if (x === null) {
-		return __Ink_String('()');
+		return '()';
 	} else if (typeof x === 'number') {
 		const sign = x > 0 ? 1 : -1;
 		x = sign * x;
@@ -130,27 +142,27 @@ function string(x) {
 		const frac = x - whole;
 		const wholeStr = (sign * whole).toString();
 		if (frac == 0) {
-			return __Ink_String(wholeStr);
+			return wholeStr;
 		} else {
 			const fracStr = frac.toString().padEnd(10, '0').substr(1);
-			return __Ink_String(wholeStr + fracStr);
+			return wholeStr + fracStr;
 		}
 	} else if (__is_ink_string(x)) {
 		return x;
 	} else if (typeof x === 'boolean') {
-		return __Ink_String(x.toString());
+		return x.toString();
 	} else if (typeof x === 'function') {
-		return __Ink_String(x.toString()); // implementation-dependent, not specificied
+		return x.toString(); // implementation-dependent, not specified
 	} else if (Array.isArray(x) || typeof x === 'object') {
 		const entries = [];
 		for (const key of keys(x)) {
 			entries.push(`${key}: ${string(x[key])}`);
 		}
-		return __Ink_String('{' + entries.join(', ') + '}');
+		return '{' + entries.join(', ') + '}';
 	} else if (x === undefined) {
-		return __Ink_String('undefined'); // undefined behavior
+		return 'undefined'; // undefined behavior
 	}
-	return __Ink_String(x.toString()); // undefined behavior
+	throw new Error('string() called on unknokwn type ' + x.toString());
 }
 
 function number(x) {
@@ -167,25 +179,26 @@ function char(n) {
 
 function type(x) {
 	if (x === null) {
-		return __Ink_String('()');
+		return '()';
 	} else if (typeof x === 'number') {
-		return __Ink_String('number');
+		return 'number';
 	} else if (__is_ink_string(x)) {
-		return __Ink_String('string');
+		return 'string';
 	} else if (typeof x === 'boolean') {
-		return __Ink_String('boolean');
+		return 'boolean'
 	} else if (typeof x === 'function') {
-		return __Ink_String('function');
+		return 'function';
 	} else if (Array.isArray(x) || typeof x === 'object') {
-		return __Ink_String('composite');
+		return 'composite';
 	}
-	return __Ink_String('');
+	throw new Error('type() called on unknokwn type ' + x.toString());
 }
 
 function len(x) {
+	x = __as_ink_string(x);
 	switch (type(x).valueOf()) {
 		case 'string':
-			return x.length;
+			return x.valueOf().length;
 		case 'composite':
 			if (Array.isArray(x)) {
 				// -1 for .length
@@ -193,8 +206,9 @@ function len(x) {
 			} else {
 				return Object.getOwnPropertyNames(x).length;
 			}
+		default:
+			throw new Error('len() takes a string or composite value, but got ' + string(x))
 	}
-	throw new Error('len() takes a string or composite value, but got ' + string(x))
 }
 
 function keys(x) {
@@ -298,6 +312,8 @@ function __ink_match(cond, clauses) {
 const __Ink_Empty = Symbol('__Ink_Empty');
 
 const __Ink_String = s => {
+	if (__is_ink_string(s)) return s;
+
 	return {
 		__is_ink_string: true,
 		assign(i, slice) {
