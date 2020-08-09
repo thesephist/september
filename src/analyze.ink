@@ -3,6 +3,7 @@ std := load('../vendor/std')
 log := std.log
 each := std.each
 filter := std.filter
+clone := std.clone
 
 Tokenize := load('tokenize')
 Tok := Tokenize.Tok
@@ -40,9 +41,28 @@ analyzeSubexpr := (node, ctx) => node.type :: {
 		analyzeSubexpr(node.body, ctx)
 		[node.body.type, node.body.op] :: {
 			[Node.BinaryExpr, Tok.DefineOp] -> node.body.decl? := true
-			[Node.MatchExpr, _] -> ()
+			[Node.MatchExpr, _] -> (
+				cond := node.body.condition
+				[cond.type, cond.op, cond.left] :: {
+					` catches the common case where a new variable is bound to
+						the function scope within a naked match condition expression `
+					[Node.BinaryExpr Tok.DefineOp{type: Node.Ident, val: _}] -> (
+						tmpMatch := clone(node.body)
+						tmpMatch.condition := cond.left
+						node.body := {
+							type: Node.ExprList
+							exprs: [
+								cond
+								tmpMatch
+							]
+						}
+						analyzeSubexpr(node.body, ctx)
+					)
+					_ -> analyzeSubexpr(node.body, ctx)
+				}
+			)
+			_ -> analyzeSubexpr(node.body, ctx)
 		}
-		node
 	)
 	(Node.MatchExpr) -> (
 		analyzeSubexpr(node.condition, ctx)
