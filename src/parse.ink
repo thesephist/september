@@ -424,7 +424,6 @@ parseAtom := (tokens, idx) => tokens.(idx) :: {
 						exprs := []
 						result := (sub := (idx) => tokens.(idx) :: {
 							{type: Tok.RParen, val: _, line: _, col: _} -> {
-								node: ()
 								idx: idx + 1 `` RParen
 							}
 							_ -> (
@@ -470,30 +469,35 @@ parseAtom := (tokens, idx) => tokens.(idx) :: {
 					)
 					(Tok.LBrace) -> (
 						entries := []
-						result := (sub := (idx) => (
-							result := parseObjectEntry(tokens, idx)
-							entry := result.node
-							result.err :: {
-								() -> (
-									entries.len(entries) := entry
-									tokens.(result.idx) :: {
-										() -> {
-											node: ()
-											idx: result.idx
-											err: 'unexpected end of input, expected }'
-										}
-										_ -> tokens.(result.idx).type :: {
-											(Tok.RBrace) -> {
-												node: result.node
-												idx: result.idx + 1 `` RBrace
-											}
-											_ -> sub(result.idx)
-										}
-									}
-								)
-								_ -> result
+						result := (sub := (idx) => tokens.(idx) :: {
+							{type: Tok.RBrace, val: _, line: _, col: _} -> {
+								idx: idx + 1 `` RBrace
 							}
-						))(idx + 1) `` LBrace
+							_ -> (
+								result := parseObjectEntry(tokens, idx)
+								entry := result.node
+								result.err :: {
+									() -> (
+										entries.len(entries) := entry
+										tokens.(result.idx) :: {
+											() -> {
+												node: ()
+												idx: result.idx
+												err: 'unexpected end of input, expected }'
+											}
+											_ -> tokens.(result.idx).type :: {
+												(Tok.RBrace) -> {
+													node: result.node
+													idx: result.idx + 1 `` RBrace
+												}
+												_ -> sub(result.idx)
+											}
+										}
+									)
+									_ -> result
+								}
+							)
+						})(idx + 1) `` LBrace
 
 						{
 							node: {
@@ -517,30 +521,35 @@ parseAtom := (tokens, idx) => tokens.(idx) :: {
 
 parseListLiteral := (tokens, idx) => (
 	exprs := []
-	result := (sub := (idx) => (
-		result := parseExpr(tokens, idx)
-		expr := result.node
-		result.err :: {
-			() -> (
-				exprs.len(exprs) := expr
-				tokens.(result.idx) :: {
-					() -> {
-						node: ()
-						idx: result.idx
-						err: 'unexpected end of input, expected )'
-					}
-					_ -> tokens.(result.idx).type :: {
-						(Tok.RBracket) -> {
-							node: result.node
-							idx: result.idx + 1 `` RBracket
-						}
-						_ -> sub(result.idx)
-					}
-				}
-			)
-			_ -> result
+	result := (sub := (idx) => tokens.(idx) :: {
+		{type: Tok.RBracket, val: _, line: _, col: _} -> {
+			idx: idx + 1 `` RBracket
 		}
-	))(idx + 1) `` LBracket
+		_ -> (
+			result := parseExpr(tokens, idx)
+			expr := result.node
+			result.err :: {
+				() -> (
+					exprs.len(exprs) := expr
+					tokens.(result.idx) :: {
+						() -> {
+							node: ()
+							idx: result.idx
+							err: 'unexpected end of input, expected ]'
+						}
+						_ -> tokens.(result.idx).type :: {
+							(Tok.RBracket) -> {
+								node: result.node
+								idx: result.idx + 1 `` RBracket
+							}
+							_ -> sub(result.idx)
+						}
+					}
+				)
+				_ -> result
+			}
+		)
+	})(idx + 1) `` LBracket
 
 	{
 		node: {
@@ -597,30 +606,35 @@ parseFnLiteral := (tokens, idx) => (
 				processBody(idx + 1)
 			)
 			(Tok.LParen) -> (
-				result := (sub := (idx) => (
-					result := parseExpr(tokens, idx)
-					expr := result.node
-					result.err :: {
-						() -> (
-							args.len(args) := expr
-							tokens.(result.idx) :: {
-								() -> {
-									node: ()
-									idx: result.idx
-									err: 'unexpected end of input, expected )'
-								}
-								_ -> tokens.(result.idx).type :: {
-									(Tok.RParen) -> {
-										node: result.node
-										idx: result.idx + 1 `` RParen
-									}
-									_ -> sub(result.idx)
-								}
-							}
-						)
-						_ -> result
+				result := (sub := (idx) => tokens.(idx) :: {
+					{type: Tok.RParen, val: _, line: _, col: _} -> {
+						idx: idx + 1
 					}
-				))(idx + 1)
+					_ -> (
+						result := parseExpr(tokens, idx)
+						expr := result.node
+						result.err :: {
+							() -> (
+								args.len(args) := expr
+								tokens.(result.idx) :: {
+									() -> {
+										node: ()
+										idx: result.idx
+										err: 'unexpected end of input, expected )'
+									}
+									_ -> tokens.(result.idx).type :: {
+										(Tok.RParen) -> {
+											node: result.node
+											idx: result.idx + 1 `` RParen
+										}
+										_ -> sub(result.idx)
+									}
+								}
+							)
+							_ -> result
+						}
+					)
+				})(idx + 1)
 
 				processBody(result.idx)
 			)

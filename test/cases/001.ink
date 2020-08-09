@@ -3,7 +3,12 @@
 
 true & false
 ~~4
+
+`` empty expressions
+() => ()
 ()
+{}
+[]
 
 window.location.href
 obj.('hi', a + b)
