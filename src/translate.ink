@@ -26,5 +26,10 @@ main := prog => (
 	nodes := parse(tokens)
 	log(nodes)
 
-	cat(map(nodes, render), ';' + Newline) + ';' + Newline
+	type(nodes) :: {
+		` tree of nodes `
+		'composite' -> cat(map(nodes, render), ';' + Newline) + ';' + Newline
+		` was parse err `
+		'string' -> nodes
+	}
 )

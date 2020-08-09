@@ -1,6 +1,7 @@
 std := load('../vendor/std')
 
 log := std.log
+f := std.format
 slice := std.slice
 each := std.each
 
@@ -78,7 +79,11 @@ parse := tokens => (
 					nodes.len(nodes) := result.node
 					sub(result.idx)
 				)
-				_ -> result.err
+				_ -> f('parse err @ {{line}}:{{col}}: {{err}}', {
+					err: result.err
+					line: tokens.(result.idx).line
+					col: tokens.(result.idx).col
+				})
 			}
 		)
 	})(0)
@@ -456,7 +461,7 @@ parseAtom := (tokens, idx) => tokens.(idx) :: {
 					_ -> {
 						node: ()
 						idx: idx
-						err: 'not implemented! (parseAtom)'
+						err: 'token ' + tkString(tokens.(idx)) + ' not implemented! (parseAtom)'
 					}
 				}
 			)

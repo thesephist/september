@@ -5,10 +5,11 @@ true & false
 ~~4
 
 window.location.href
-
 obj.('hi', a + b)
 
 (console.log)('hi')
+
+9 & 3 + x * x
 
 ``() => ()
 x => 9 + x * x
@@ -36,3 +37,4 @@ a :: {
 		test: 'tes' + 'sler'
 	}
 }
+

@@ -27,7 +27,7 @@ September makes the following translations.
 - The equality comparison `=` does deep comparisons in Ink, which does not have a native JavaScript equivalent. Instead, we call out to a performance-optimized runtime function `__ink_eq` which has fast paths for simple types, and does deep comparisons for composite values.
 - `>` and `<` are translated literally, as the semantics in Ink and JavaScript match.
 - `.`: the property access operator works the same way in JavaScript (with some caveats outlined in the "composite values" section below), but the operator precedence is different. Specifically, function calls on the right side of `.` need to be parenthesized in JavaScript because it has higher precedence in Ink.
-- Binary combinators `& | ^` have different behavior for numbers and booleans in Ink, so they call out to their respective runtime functions, `__ink_{and, or, xor}`.
+- Binary combinators `& | ^` have different behavior for numbers and booleans in Ink, like the fact that they do not short circuit in Ink, so they call out to their respective runtime functions, `__ink_{and, or, xor}`.
 
 ### Values
 
