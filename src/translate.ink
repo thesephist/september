@@ -13,6 +13,7 @@ tkString := Tokenize.tkString
 
 Parse := load('parse')
 parse := Parse.parse
+ndString := Parse.ndString
 
 Render := load('render')
 render := Render.render
@@ -24,12 +25,14 @@ main := prog => (
 	`` each(tokens, tok => log(tkString(tok)))
 
 	nodes := parse(tokens)
-	`` log(nodes)
 
 	type(nodes) :: {
 		` tree of nodes `
-		'composite' -> cat(map(nodes, render), ';' + Newline) + ';' + Newline
-		` was parse err `
+		'composite' -> (
+			each(nodes, node => log(ndString(node)))
+			`` cat(map(nodes, render), ';' + Newline) + Newline
+		)
+		` parse err `
 		'string' -> nodes
 	}
 )

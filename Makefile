@@ -6,13 +6,13 @@ run:
 
 # run all tests under test/
 check:
-	./test/test.ink
+	./bin/main.ink translate test/cases/*.ink
 t: check
 
 fmt:
-	inkfmt fix bin/*.ink src/*.ink test/*.ink
+	inkfmt fix bin/*.ink src/*.ink test/*.ink test/cases/*.ink
 f: fmt
 
 fmt-check:
-	inkfmt bin/*.ink src/*.ink test/*.ink
+	inkfmt bin/*.ink src/*.ink test/*.ink test/cases/*.ink
 fk: fmt-check

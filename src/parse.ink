@@ -3,10 +3,13 @@ std := load('../vendor/std')
 log := std.log
 f := std.format
 slice := std.slice
+map := std.map
 each := std.each
+cat := std.cat
 
 Tokenize := load('tokenize')
 Tok := Tokenize.Tok
+typeName := Tokenize.typeName
 tkString := Tokenize.tkString
 
 mkiota := load('iota').new
@@ -34,9 +37,44 @@ Node := {
 	FnLiteral: iota()
 }
 
-nodeString := node => node.type :: {
-	`` TODO: improve
-	_ -> string(node)
+ndString := node => node.type :: {
+	(Node.NumberLiteral) -> f('Lit({{ val }})', node)
+	(Node.StringLiteral) -> f('Lit({{ val }})', node)
+	(Node.BooleanLiteral) -> f('Lit({{ val }})', node)
+
+	(Node.UnaryExpr) -> f('UnrExpr({{0}} {{1}})'
+		[typeName(node.op), ndString(node.left)])
+	(Node.BinaryExpr) -> f('BinExpr({{0}} {{1}} {{2}})'
+		[ndString(node.left), typeName(node.op), ndString(node.right)])
+
+	(Node.Ident) -> f('Ident({{val}})', node)
+	(Node.EmptyIdent) -> 'EmptyIdent'
+
+	(Node.FnCall) -> f('Call({{0}} {{1}})', [
+		ndString(node.fn)
+		'(' + cat(map(node.args, ndString), ' ') + ')'
+	])
+	(Node.FnLiteral) -> f('Fn({{0}} {{1}})', [
+		'(' + cat(map(node.args, ndString), ' ') + ')'
+		ndString(node.body)
+	])
+
+	(Node.ExprList) -> '(' + cat(map(node.exprs, ndString), ' ') + ')'
+	(Node.MatchExpr) -> f('Match({{0}} {{1}})', [
+		ndString(node.condition)
+		'{' + cat(map(node.clauses, ndString), ' ') + '}'
+	])
+	(Node.MatchClause) -> f('Clause({{0}} {{1}})'
+		[ndString(node.target), ndString(node.expr)])
+
+	(Node.ListLiteral) -> f('List({{0}})'
+		[cat(map(node.exprs, ndString), ' ')])
+	(Node.ObjectLiteral) -> f('Obj({{0}})'
+		[cat(map(node.entries, ndString), ' ')])
+	(Node.ObjectEntry) -> f('Entry({{0}} {{1}})'
+		[ndString(node.key), ndString(node.val)])
+
+	_ -> 'Unknown(' + string(node) + ')'
 }
 
 opPriority := tok => tok.type :: {
@@ -167,6 +205,8 @@ parseBinaryExpr := (left, op, prevPriority, tokens, idx) => (
 		})()
 		_ -> result
 	}
+
+	`` TODO: log(map(nodes, ndString))
 
 	each(ops, (op, i) => (
 		node := nodes.(i + 1)
@@ -693,6 +733,7 @@ parseMatchClause := (tokens, idx) => (
 					result.err :: {
 						() -> {
 							node: {
+								type: Node.MatchClause
 								target: atom
 								expr: result.node
 							}
@@ -729,6 +770,7 @@ parseObjectEntry := (tokens, idx) => (
 					result.err :: {
 						() -> {
 							node: {
+								type: Node.ObjectEntry
 								key: atom
 								val: result.node
 							}

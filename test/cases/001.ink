@@ -7,7 +7,7 @@ true & false
 window.location.href
 obj.('hi', a + b)
 
-(console.log)('hi')
+(console.log)('hi', 2)
 
 x => 9 + x * x
 (y, _) => (
@@ -15,7 +15,7 @@ x => 9 + x * x
 	y + 2
 )
 
-type('hi') :: {
+'x' + type('hi') :: {
 	true -> 1
 	(double(a, b, c) - 1) -> 2 + 3 = 1 + 4
 	_ -> (
@@ -32,4 +32,3 @@ type('hi') :: {
 		test: 'tes' + 'sler'
 	}
 }
-
