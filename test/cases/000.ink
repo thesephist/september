@@ -1,13 +1,7 @@
-` objects and lists `
+` standard library `
 
-keys := Object.keys
+std := load('./runtime/std')
 
-obj := {
-	first: 1
-	second: 2
-	third: 3
-}
+log := std.log
 
-log := x => (console.log)('' + x)
-
-log(keys(obj))
+log('000.ink~')

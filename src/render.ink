@@ -126,20 +126,28 @@ renderBinaryExpr := node => node.op :: {
 	(Tok.DefineOp) -> node.decl? :: {
 		true -> [node.left.type, node.left.op] :: {
 			[Node.BinaryExpr, Tok.AccessorOp] -> (
-				f('{{0}} = {{1}}', [render(node.left), render(node.right)])
+				f('{{0}} = {{1}}', [renderDefineTarget(node.left), render(node.right)])
 			)
 			_ -> f('let {{0}} = {{1}}', [render(node.left), render(node.right)])
 		}
-		false -> f('{{0}} = {{1}}', [render(node.left), render(node.right)])
-		_ -> f('{{0}} = {{1}}', [render(node.left), render(node.right)])
+		false -> f('{{0}} = {{1}}', [renderDefineTarget(node.left), render(node.right)])
+		_ -> f('{{0}} = {{1}}', [renderDefineTarget(node.left), render(node.right)])
 	}
 
 	(Tok.AccessorOp) -> node.right.type :: {
-		(Node.Ident) -> f('({{0}}.{{1}})', [render(node.left), render(node.right)])
-		_ -> f('({{0}}[{{1}}])', [render(node.left), render(node.right)])
+		(Node.Ident) -> f('({{0}}.{{1}} !== undefined ? {{0}}.{{1}} : null)', [render(node.left), render(node.right)])
+		_ -> f('({{0}}[{{1}}] !== undefined ? {{0}}[{{1}}] : null)', [render(node.left), render(node.right)])
 	}
 
 	_ -> renderErr(f('BinaryExpr with unknown op: {{0}}', [node.op]))
+}
+
+renderDefineTarget := node => node.type :: {
+	(Node.BinaryExpr) -> node.right.type :: {
+		(Node.Ident) -> f('({{0}}.{{1}})', [render(node.left), render(node.right)])
+		_ -> f('({{0}}[{{1}}])', [render(node.left), render(node.right)])
+	}
+	_ -> render(node)
 }
 
 renderIdent := node => (

@@ -17,9 +17,9 @@ function __ink_in(cb) {
 
 function out(s) {
 	if (__NODE) {
-		process.stdout.write(s);
+		process.stdout.write(string(s));
 	} else {
-		console.log(s);
+		console.log(string(s));
 	}
 	return null;
 }
@@ -107,14 +107,50 @@ function floor(n) {
 
 function load(path) {
 	if (__NODE) {
-		return require(path);
+		return require(string(path));
 	} else {
 		throw new Error('load() not implemented!');
 	}
 }
 
+function __is_ink_string(x) {
+	if (x == null) {
+		return false;
+	}
+	return x.__is_ink_string;
+}
+
 function string(x) {
-	// TODO
+	if (x === null) {
+		return '()';
+	} else if (typeof x === 'number') {
+		const sign = x > 0 ? 1 : -1;
+		x = sign * x;
+		const whole = ~~x;
+		const frac = x - whole;
+		const wholeStr = (sign * whole).toString();
+		if (frac == 0) {
+			return wholeStr;
+		} else {
+			const fracStr = frac.toString().padEnd(10, '0').substr(1);
+			return wholeStr + fracStr;
+		}
+	} else if (__is_ink_string(x)) {
+		return x.valueOf();
+	} else if (typeof x === 'boolean') {
+		return x.toString();
+	} else if (typeof x === 'function') {
+		return x.toString(); // implementation-dependent, not specificied
+	} else if (Array.isArray(x) || typeof x === 'object') {
+		const entries = [];
+		for (const key of keys(x)) {
+			entries.push(`${key}: ${string(x[key])}`);
+		}
+		return '{' + entries.join(', ') + '}';
+	} else if (x === undefined) {
+		return ''; // undefined behavior
+	}
+	return x.toString(); // undefined behavior
 }
 
 function number(x) {
@@ -126,19 +162,50 @@ function point(c) {
 }
 
 function char(n) {
-	return c.fromCharCode(c);
+	return String.fromCharCode(n);
 }
 
 function type(x) {
-	// TODO
+	if (x === null) {
+		return '()';
+	} else if (typeof x === 'number') {
+		return 'number';
+	} else if (__is_ink_string(x)) {
+		return 'string';
+	} else if (typeof x === 'boolean') {
+		return 'boolean';
+	} else if (typeof x === 'function') {
+		return 'function';
+	} else if (Array.isArray(x) || typeof x === 'object') {
+		return 'composite';
+	}
+	return ''
 }
 
 function len(x) {
-	// TODO
+	switch (type(x)) {
+		case 'string':
+			return x.length;
+		case 'composite':
+			if (Array.isArray(x)) {
+				// -1 for .length
+				return Object.getOwnPropertyNames(x).length - 1;
+			} else {
+				return Object.getOwnPropertyNames(x).length;
+			}
+	}
+	throw new Error('len() takes a string or composite value, but got ' + string(x))
 }
 
 function keys(x) {
-	// TODO
+	if (type(x) === 'composite') {
+		if (Array.isArray(x)) {
+			return Object.getOwnPropertyNames(x).filter(name => name !== 'length');
+		} else {
+			return Object.getOwnPropertyNames(x);
+		}
+	}
+	throw new Error('keys() takes a composite value, but got ' + string(x))
 }
 
 /* Ink semantics polyfill */
@@ -169,7 +236,7 @@ function __ink_eq(a, b) {
 	if (typeof a !== typeof b) {
 		return false;
 	}
-	if (a.__is_ink_string && b.__is_ink_string) {
+	if (__is_ink_string(a) && __is_ink_string(b)) {
 		return a.valueOf() === b.valueOf();
 	}
 	if (typeof a === 'number' || typeof a === 'boolean') {
