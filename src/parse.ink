@@ -297,7 +297,20 @@ parseAtom := (tokens, idx) => tokens.(idx) :: {
 		err: 'unexpected end of input, expected atom'
 	}
 	_ -> tokens.(idx).type :: {
-		(Tok.NegOp) -> () `` TODO: implement
+		(Tok.NegOp) -> (
+			result := parseAtom(tokens, idx + 1)
+			result.err :: {
+				() -> {
+					node: {
+						type: Node.UnaryExpr
+						op: Tok.NegOp
+						left: result.node
+					}
+					idx: result.idx
+				}
+				_ -> result
+			}
+		)
 		_ -> tokens.(idx + 1) :: {
 			() -> {
 				node: ()
@@ -317,7 +330,10 @@ parseAtom := (tokens, idx) => tokens.(idx) :: {
 							result.idx := result.idx - 1
 							result
 						)
-						_ -> fnNode
+						_ -> {
+							node: fnNode
+							idx: idx
+						}
 					}
 				)
 

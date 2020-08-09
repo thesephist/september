@@ -24,7 +24,7 @@ September makes the following translations.
 
 - `~`: runtime function `__ink_negate` which performs a `-` if argument is number, `!` otherwise.
 - Basic arithmetic (`+ - * / %`) are translated verbatim, because they are valid JavaScript.
-- The equality comparison `=` does deep comparisios in Ink, whichi does not have a native JavaScript equivalent. Instead, we call out to a performance-optimized runtime function `__ink_eq` which has fast paths for simple types, and does deep comparisons for composite values.
+- The equality comparison `=` does deep comparisons in Ink, which does not have a native JavaScript equivalent. Instead, we call out to a performance-optimized runtime function `__ink_eq` which has fast paths for simple types, and does deep comparisons for composite values.
 - `>` and `<` are translated literally, as the semantics in Ink and JavaScript match.
 - `.`: the property access operator works the same way in JavaScript (with some caveats outlined in the "composite values" section below), but the operator precedence is different. Specifically, function calls on the right side of `.` need to be parenthesized in JavaScript because it has higher precedence in Ink.
 - Binary combinators `& | ^` have different behavior for numbers and booleans in Ink, so they call out to their respective runtime functions, `__ink_{and, or, xor}`.
@@ -49,7 +49,7 @@ Ink variables follow strict lexical binding and matches JavaScript's lexical bin
 
 In Ink, a variable declaration is an expression; in JavaScript it is a statement. This means variable bindings may need to be pulled out of an expression in Ink into its own statement in JavaScript.
 
-Further optimizatios may be added in the future.
+Further optimizations may be added in the future.
 
 ### Match expressions
 
