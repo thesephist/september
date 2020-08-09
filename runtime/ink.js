@@ -17,9 +17,9 @@ function __ink_in(cb) {
 
 function out(s) {
 	if (__NODE) {
-		process.stdout.write(string(s));
+		process.stdout.write(string(s).valueOf());
 	} else {
-		console.log(string(s));
+		console.log(string(s).valueOf());
 	}
 	return null;
 }
@@ -107,7 +107,7 @@ function floor(n) {
 
 function load(path) {
 	if (__NODE) {
-		return require(string(path));
+		return require(string(path).valueOf());
 	} else {
 		throw new Error('load() not implemented!');
 	}
@@ -122,7 +122,7 @@ function __is_ink_string(x) {
 
 function string(x) {
 	if (x === null) {
-		return '()';
+		return __Ink_String('()');
 	} else if (typeof x === 'number') {
 		const sign = x > 0 ? 1 : -1;
 		x = sign * x;
@@ -130,27 +130,27 @@ function string(x) {
 		const frac = x - whole;
 		const wholeStr = (sign * whole).toString();
 		if (frac == 0) {
-			return wholeStr;
+			return __Ink_String(wholeStr);
 		} else {
 			const fracStr = frac.toString().padEnd(10, '0').substr(1);
-			return wholeStr + fracStr;
+			return __Ink_String(wholeStr + fracStr);
 		}
 	} else if (__is_ink_string(x)) {
-		return x.valueOf();
+		return x;
 	} else if (typeof x === 'boolean') {
-		return x.toString();
+		return __Ink_String(x.toString());
 	} else if (typeof x === 'function') {
-		return x.toString(); // implementation-dependent, not specificied
+		return __Ink_String(x.toString()); // implementation-dependent, not specificied
 	} else if (Array.isArray(x) || typeof x === 'object') {
 		const entries = [];
 		for (const key of keys(x)) {
 			entries.push(`${key}: ${string(x[key])}`);
 		}
-		return '{' + entries.join(', ') + '}';
+		return __Ink_String('{' + entries.join(', ') + '}');
 	} else if (x === undefined) {
-		return ''; // undefined behavior
+		return __Ink_String('undefined'); // undefined behavior
 	}
-	return x.toString(); // undefined behavior
+	return __Ink_String(x.toString()); // undefined behavior
 }
 
 function number(x) {
@@ -167,23 +167,23 @@ function char(n) {
 
 function type(x) {
 	if (x === null) {
-		return '()';
+		return __Ink_String('()');
 	} else if (typeof x === 'number') {
-		return 'number';
+		return __Ink_String('number');
 	} else if (__is_ink_string(x)) {
-		return 'string';
+		return __Ink_String('string');
 	} else if (typeof x === 'boolean') {
-		return 'boolean';
+		return __Ink_String('boolean');
 	} else if (typeof x === 'function') {
-		return 'function';
+		return __Ink_String('function');
 	} else if (Array.isArray(x) || typeof x === 'object') {
-		return 'composite';
+		return __Ink_String('composite');
 	}
-	return ''
+	return __Ink_String('');
 }
 
 function len(x) {
-	switch (type(x)) {
+	switch (type(x).valueOf()) {
 		case 'string':
 			return x.length;
 		case 'composite':
@@ -198,14 +198,14 @@ function len(x) {
 }
 
 function keys(x) {
-	if (type(x) === 'composite') {
+	if (type(x).valueOf() === 'composite') {
 		if (Array.isArray(x)) {
 			return Object.getOwnPropertyNames(x).filter(name => name !== 'length');
 		} else {
 			return Object.getOwnPropertyNames(x);
 		}
 	}
-	throw new Error('keys() takes a composite value, but got ' + string(x))
+	throw new Error('keys() takes a composite value, but got ' + string(x).valueOf())
 }
 
 /* Ink semantics polyfill */
@@ -306,6 +306,9 @@ const __Ink_String = s => {
 			}
 
 			return s = s.substr(0, i) + slice + s.substr(i + slice.length);
+		},
+		toString() {
+			return s;
 		},
 		valueOf() {
 			return s;

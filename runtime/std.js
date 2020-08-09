@@ -44,7 +44,7 @@ const some = (list) => {return reduce(list, (acc, x) => {return __ink_or(acc, x)
 module.exports.some = some;
 const every = (list) => {return reduce(list, (acc, x) => {return __ink_and(acc, x)}, true)};
 module.exports.every = every;
-const cat = (list, joiner) => {return __ink_match(max = len(list), [[() => 0, () => __Ink_String(``)], [() => __Ink_Empty, () => (() => {sub = (i, acc) => {return __ink_match(i, [[() => max, () => acc], [() => __Ink_Empty, () => sub(i + 1, (() => {let __ink_assgn_trgt = acc; (__ink_assgn_trgt[len(acc)]) = joiner + (list[(() => {return i})()] !== undefined ? list[(() => {return i})()] : null); return __ink_assgn_trgt})())]])}; return sub})()(1, clone((list[0] !== undefined ? list[0] : null)))]])};
+const cat = (list, joiner) => (() => {let max = len(list); return __ink_match(max, [[() => 0, () => __Ink_String(``)], [() => __Ink_Empty, () => (() => {sub = (i, acc) => {return __ink_match(i, [[() => max, () => acc], [() => __Ink_Empty, () => sub(i + 1, (() => {let __ink_assgn_trgt = acc; (__ink_assgn_trgt[len(acc)]) = joiner + (list[(() => {return i})()] !== undefined ? list[(() => {return i})()] : null); return __ink_assgn_trgt})())]])}; return sub})()(1, clone((list[0] !== undefined ? list[0] : null)))]])})();
 module.exports.cat = cat;
 const each = (list, f) => (() => {let max = len(list); return (() => {sub = (i) => {return __ink_match(i, [[() => max, () => null], [() => __Ink_Empty, () => (() => {f((list[(() => {return i})()] !== undefined ? list[(() => {return i})()] : null), i); return sub(i + 1)})()]])}; return sub})()(0)})();
 module.exports.each = each;

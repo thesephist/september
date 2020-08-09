@@ -64,8 +64,9 @@ L := map(range(0, 250, 1), rint)
 Before := clone(L)
 
 `` TODO: september test
-`` log((std.cat)(L, ', '))
-log(L)
+log(keys(L))
+log(map(L, string))
+`` log((std.cat)(map(L, string), ', '))
 
 `` log('before quicksort: ' + list(L))
 `` log('after quicksort: ' + list(sort(L)))
