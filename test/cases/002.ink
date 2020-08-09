@@ -2,7 +2,7 @@
 
 log := x => (console.log)('' + x)
 
-log('should print 2, 5, 5, 5')
+log('should print 2, 5, 5, 5, 20, 5')
 
 a := 2
 log(a)
@@ -20,3 +20,10 @@ x := 12
 )
 log(a)
 
+scoped := () => (
+	a := 10
+	a := 20
+	log(a)
+)
+scoped()
+log(a)

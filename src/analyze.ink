@@ -2,6 +2,7 @@ std := load('../vendor/std')
 
 log := std.log
 each := std.each
+filter := std.filter
 
 Tokenize := load('tokenize')
 Tok := Tokenize.Tok
@@ -14,26 +15,35 @@ ndString := Parse.ndString
 analyzeSubexpr := (node, ctx) => node.type :: {
 	` TODO: recursively analyze all subexpressions of all nodes `
 	(Node.ExprList) -> (
-		ctx := {scopeOwner: node}
 		each(node.exprs, n => analyzeSubexpr(n, ctx))
+
+		` implement local lexical scope and let-keyword binding `
+		defns := filter(
+			node.exprs
+			expr => [expr.type, expr.op, expr.left] = [Node.BinaryExpr, Tok.DefineOp, {type: Node.Ident, val: _}]
+		)
+
+		declaredNames := {}
+		each(defns, defn => declaredNames.(defn.left.val) :: {
+			true -> ()
+			_ -> (
+				` name declared for the first time in this scope here,
+				so this needs to be a let-declaration `
+				defn.decl? := true
+				declaredNames.(defn.left.val) := true
+			)
+		})
+
 		node
 	)
 	(Node.FnLiteral) -> (
-		analyzeSubexpr(node.body, {scopeOwner: node})
+		analyzeSubexpr(node.body, ctx)
+		[node.body.type, node.body.op] :: {
+			[Node.BinaryExpr, Tok.DefineOp] -> node.body.decl? := true
+		}
 		node
 	)
 	(Node.BinaryExpr) -> (
-		node.op :: {
-			(Tok.DefineOp) -> ctx.scopeOwner :: {
-				() -> node
-				{type: Node.ExprList, exprs: _} -> (
-					node.decl? := true
-				)
-				{type: Node.FnLiteral, args: _, body: _} -> (
-					node.decl? := true
-				)
-			}
-		}
 		analyzeSubexpr(node.left, ctx)
 		analyzeSubexpr(node.right, ctx)
 		node
@@ -41,6 +51,4 @@ analyzeSubexpr := (node, ctx) => node.type :: {
 	_ -> node
 }
 
-analyze := node => analyzeSubexpr(node, {
-	scopeOwner: ()
-})
+analyze := node => analyzeSubexpr(node, {})

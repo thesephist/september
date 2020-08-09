@@ -10,6 +10,8 @@ Currently, September supports one CLI command. Run
 september translate <file1>.ink <file2>.ink
 ```
 
+	// TODO
+
 to translate Ink programs into JavaScript and print them to stdout.
 
 ## Transformations
@@ -47,13 +49,17 @@ Ink has a special value `_` (the empty identifier), which is mapped to a `Symbol
 
 Ink variables follow strict lexical binding and matches JavaScript's lexical binding rules. Because Ink variable bindings are always mutable, September defaults to translate all variable declarations (first variable reference in a scope) to a `let` declaration in JavaScript.
 
+One important difference is that Ink has no explicit variable declarations; like in Python, simply assigning to a name will create a new variable in that scope if one does not exist already. In JavaScript, local variables are declared with a keyword. During semantic analysis, the compiler recognizes first assignments to names in a given scope and annotates each so it can be compiled to a `let` binding.
+
 In Ink, a variable declaration is an expression; in JavaScript it is a statement. This means variable bindings may need to be pulled out of an expression in Ink into its own statement in JavaScript.
 
-Further optimizations may be added in the future.
+Further optimizations may be added in the future. In particular, normalizing expressions to [SSA](https://en.wikipedia.org/wiki/Static_single_assignment_form) might be interesting, though I suspect V8 already optimizes JS this way under the hood, so performance advantages might be minimal.
 
 ### Match expressions
 
-	// TODO
+In this first version of September, match expressions are evaluated in the Ink runtime using the `__ink_match()` function, which takes match targets and clauses as closures. The compiler transforms a match expression into a single call to `__ink_match` with the correct closures.
+
+In the future, I hope to optimize the function away and compile matches straight down to `if...else` or `switch` blocks.
 
 ### Functions
 

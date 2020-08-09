@@ -155,7 +155,7 @@ renderExprList := node => node.exprs :: {
 			len(node.exprs) -> renderAsReturn(expr)
 			_ -> render(expr)
 		}
-	)), ', ') + '})()'
+	)), '; ') + '})()'
 }
 
 renderMatchExpr := node => f('__ink_match({{0}}, [{{1}}])', [
