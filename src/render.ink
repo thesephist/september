@@ -91,7 +91,14 @@ renderFnLiteral := node => f('({{0}}) => {{1}}', [
 renderFnCall := node => f(
 	'{{0}}({{1}})'
 	[
-		render(node.fn)
+		node.fn.type :: {
+			(Node.Ident) -> node.fn.val :: {
+				'in' -> '__ink_in'
+				'delete' -> '__ink_delete'
+				_ -> render(node.fn)
+			}
+			_ -> render(node.fn)
+		}
 		cat(map(node.args, render), ', ')
 	]
 )

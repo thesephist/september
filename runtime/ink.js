@@ -1,25 +1,147 @@
 /**
  * Ink/JavaScript runtime/interop layer
  * implements Ink system interfaces for web and Node JS runtimes
- *
- * Ink builtins
- * TODO: all system interfaces for Node.js
- *
- * Ink semantics polyfill
- * __ink_negate
- * __ink_eq
- * __ink_and
- * __ink_or
- * __ink_xor
- * __ink_match
- *
- * Ink types
- * __Ink_Empty
- * __Ink_String constructor
- *
- * JavaScript interop
- * jsnew(constructor, [argument list]): invokes the JS constructor with given arguments
  */
+
+const __NODE = typeof process === 'object';
+
+/* Ink builtins */
+
+function args() {
+	return process.argv;
+}
+
+function __ink_in(cb) {
+	// TODO
+}
+
+function out(s) {
+	if (__NODE) {
+		process.stdout.write(s);
+	} else {
+		console.log(s);
+	}
+	return null;
+}
+
+function dir(path, cb) {
+	// TODO
+}
+
+function make(path, cb) {
+	// TODO
+}
+
+function stat(path, cb) {
+	// TODO
+}
+
+function read(path, offset, length, cb) {
+	// TODO
+}
+
+function write(path, offset, data, cb) {
+	// TODO
+}
+
+function __ink_delete(path, cb) {
+	// TODO
+}
+
+function listen(host, handler) {
+	// TODO
+}
+
+function req(data, callback) {
+	// TODO
+}
+
+function rand() {
+	return Math.random();
+}
+
+function urand(length) {
+	// TODO
+}
+
+function time() {
+	return Date.now() / 1000;
+}
+
+function wait(duration, cb) {
+	setTimeout(cb, duration * 1000)
+	return null;
+}
+
+function exec(path, args, stdin, stdoutFn) {
+	// TODO
+}
+
+function sin(n) {
+	return Math.sin(n);
+}
+
+function cos(n) {
+	return Math.cos(n);
+}
+
+function asin(n) {
+	return Math.asin(n);
+}
+
+function acos(n) {
+	return Math.acos(n);
+}
+
+function pow(b, n) {
+	return Math.pow(b, n);
+}
+
+function ln(n) {
+	return Math.log(n);
+}
+
+function floor(n) {
+	return ~~n;
+}
+
+function load(path) {
+	if (__NODE) {
+		return require(path);
+	} else {
+		throw new Error('load() not implemented!');
+	}
+}
+
+function string(x) {
+	// TODO
+}
+
+function number(x) {
+	// TODO
+}
+
+function point(c) {
+	return c.charCodeAt(c);
+}
+
+function char(n) {
+	return c.fromCharCode(c);
+}
+
+function type(x) {
+	// TODO
+}
+
+function len(x) {
+	// TODO
+}
+
+function keys(x) {
+	// TODO
+}
+
+/* Ink semantics polyfill */
 
 function __ink_negate(x) {
 	if (x === true) {
@@ -104,6 +226,8 @@ function __ink_match(cond, clauses) {
     return null;
 }
 
+/* Ink types */
+
 const __Ink_Empty = Symbol('__Ink_Empty');
 
 const __Ink_String = s => {
@@ -121,6 +245,8 @@ const __Ink_String = s => {
 		},
 	}
 }
+
+/* Ink -> JavaScript interop helpers */
 
 function jsnew(Constructor, args) {
 	return new Constructor(...args);
