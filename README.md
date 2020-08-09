@@ -96,7 +96,6 @@ September is an optimizing compiler. It aims to make the following optimizations
 Testing
 
 - Tests should run through all valid test cases in `test/cases/` and compare that the output for programs running on Node.js matches the output when run on Ink's Go interpreter.
-- Run the full Ink unit test suite in `thesephist/ink` against the September compiler and Node.js runtime.
 
 Torus interop layer
 

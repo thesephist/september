@@ -170,7 +170,8 @@ function number(x) {
 }
 
 function point(c) {
-	return c.charCodeAt(c);
+	c = __as_ink_string(c)
+	return c.valueOf().charCodeAt(0);
 }
 
 function char(n) {

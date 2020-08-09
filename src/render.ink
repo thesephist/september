@@ -171,11 +171,47 @@ renderDefineTarget := node => node.type :: {
 	_ -> render(node)
 }
 
-renderIdent := node => (
-	ident := replace(node.val, '?', '__ink_qm__')
-	ident := replace(ident, '!', '__ink_em__')
-	replace(ident, '@', '__ink_am__')
-)
+renderIdent := node => node.val :: {
+	` avoid JavaScript reserved words `
+	'break' -> '__ink_ident_break'
+	'case' -> '__ink_ident_case'
+	'catch' -> '__ink_ident_catch'
+	'class' -> '__ink_ident_class'
+	'const' -> '__ink_ident_const'
+	'continue' -> '__ink_ident_continue'
+	'debugger' -> '__ink_ident_debugger'
+	'default' -> '__ink_ident_default'
+	'delete' -> '__ink_ident_delete'
+	'do' -> '__ink_ident_do'
+	'else' -> '__ink_ident_else'
+	'export' -> '__ink_ident_export'
+	'extends' -> '__ink_ident_extends'
+	'finally' -> '__ink_ident_finally'
+	'for' -> '__ink_ident_for'
+	'function' -> '__ink_ident_function'
+	'if' -> '__ink_ident_if'
+	'import' -> '__ink_ident_import'
+	'in' -> '__ink_ident_in'
+	'instanceof' -> '__ink_ident_instanceof'
+	'new' -> '__ink_ident_new'
+	'return' -> '__ink_ident_return'
+	'super' -> '__ink_ident_super'
+	'switch' -> '__ink_ident_switch'
+	'this' -> '__ink_ident_this'
+	'throw' -> '__ink_ident_throw'
+	'try' -> '__ink_ident_try'
+	'typeof' -> '__ink_ident_typeof'
+	'var' -> '__ink_ident_var'
+	'void' -> '__ink_ident_void'
+	'while' -> '__ink_ident_while'
+	'with' -> '__ink_ident_with'
+	'yield' -> '__ink_ident_yield'
+	_ -> (
+		ident := replace(node.val, '?', '__ink_qm__')
+		ident := replace(ident, '!', '__ink_em__')
+		replace(ident, '@', '__ink_am__')
+	)
+}
 
 renderExprList := node => node.exprs :: {
 	[] -> 'null'
