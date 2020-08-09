@@ -63,13 +63,8 @@ rint := () => floor(rand() * 500)
 L := map(range(0, 250, 1), rint)
 Before := clone(L)
 
-`` TODO: september test
-log(keys(L))
-log(map(L, string))
-`` log((std.cat)(map(L, string), ', '))
-
-`` log('before quicksort: ' + list(L))
-`` log('after quicksort: ' + list(sort(L)))
-`` log('before intact?: ' + (L :: {Before -> 'yes', _ -> 'no'}))
-`` sort!(L)
-`` log('after mutable sort: ' + list(L))
+log('before quicksort: ' + list(L))
+log('after quicksort: ' + list(sort(L)))
+log('before intact?: ' + (L :: {Before -> 'yes', _ -> 'no'}))
+sort!(L)
+log('after mutable sort: ' + list(L))

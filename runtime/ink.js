@@ -162,7 +162,7 @@ function string(x) {
 	} else if (x === undefined) {
 		return 'undefined'; // undefined behavior
 	}
-	throw new Error('string() called on unknokwn type ' + x.toString());
+	throw new Error('string() called on unknown type ' + x);
 }
 
 function number(x) {
@@ -178,6 +178,7 @@ function char(n) {
 }
 
 function type(x) {
+	x = __as_ink_string(x)
 	if (x === null) {
 		return '()';
 	} else if (typeof x === 'number') {
@@ -191,7 +192,7 @@ function type(x) {
 	} else if (Array.isArray(x) || typeof x === 'object') {
 		return 'composite';
 	}
-	throw new Error('type() called on unknokwn type ' + x.toString());
+	throw new Error('type() called on unknown type ' + x);
 }
 
 function len(x) {
@@ -236,6 +237,8 @@ function __ink_negate(x) {
 }
 
 function __ink_eq(a, b) {
+	a = __as_ink_string(a)
+	b = __as_ink_string(b)
 	if (a === __Ink_Empty || b === __Ink_Empty) {
 		return true;
 	}
@@ -261,17 +264,12 @@ function __ink_eq(a, b) {
 	if (typeof a !== 'object') {
 		return false;
 	}
-	for (const key in a) {
-		if (key in b) {
-			if (__ink_eq(a[key], b[key])) {
-				continue;
-			}
+	for (const key of keys(a)) {
+		if (!__ink_eq(a[key], b[key])) {
 			return false;
 		}
-		return false;
 	}
-
-	return false;
+	return true;
 }
 
 function __ink_and(a, b) {
@@ -299,12 +297,12 @@ function __ink_xor(a, b) {
 }
 
 function __ink_match(cond, clauses) {
-    for (const [target, expr] of clauses) {
-        if (__ink_eq(cond, target())) {
-            return expr();
-        }
-    }
-    return null;
+	for (const [target, expr] of clauses) {
+		if (__ink_eq(cond, target())) {
+			return expr();
+		}
+	}
+	return null;
 }
 
 /* Ink types */

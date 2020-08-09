@@ -74,6 +74,21 @@ When calling a function that invokes tail calls (calls itself in a conditional b
 
 	// TODO
 
+## Optimizations
+
+September is an optimizing compiler. It aims to make the following optimizations.
+
+### General optimizations
+
+- [ ] Constant propagation
+- [ ] Dead branch elimination
+- [ ] Common subexpression elimination
+
+### Ink and September-specific optimizations
+
+- [ ] Tail call elimination (unrolling recursion into loops)
+- [ ] Static branch elimination by type propagation
+
 ---
 
 ## Ideas and brainstorming
