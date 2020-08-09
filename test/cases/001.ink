@@ -12,6 +12,7 @@ true & false
 
 window.location.href
 obj.('hi', a + b)
+do()
 
 (console.log)('hi', 2)
 

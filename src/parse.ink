@@ -325,7 +325,7 @@ parseExpr := (tokens, idx) => (
 						_ -> {
 							node: ()
 							idx: S.idx
-							err: 'token ' + tkString(next) + ' not implemented! (parseExpr)'
+							err: f('unexpected token {{0}} (parseExpr)', [tkString(next)])
 						}
 					}
 				)
@@ -422,35 +422,7 @@ parseAtom := (tokens, idx) => tokens.(idx) :: {
 					}
 					(Tok.LParen) -> (
 						exprs := []
-						result := (sub := (idx) => tokens.(idx) :: {
-							{type: Tok.RParen, val: _, line: _, col: _} -> {
-								idx: idx + 1 `` RParen
-							}
-							_ -> (
-								result := parseExpr(tokens, idx)
-								expr := result.node
-								result.err :: {
-									() -> (
-										exprs.len(exprs) := expr
-										tokens.(result.idx) :: {
-											() -> {
-												node: ()
-												idx: result.idx
-												err: 'unexpected end of input, expected )'
-											}
-											_ -> tokens.(result.idx).type :: {
-												(Tok.RParen) -> {
-													node: result.node
-													idx: result.idx + 1 `` RParen
-												}
-												_ -> sub(result.idx)
-											}
-										}
-									)
-									_ -> result
-								}
-							)
-						})(idx + 1)
+						result := parseGroup(tokens, idx, parseExpr, exprs, Tok.RParen)
 
 						tokens.(result.idx) :: {
 							() -> {
@@ -469,35 +441,7 @@ parseAtom := (tokens, idx) => tokens.(idx) :: {
 					)
 					(Tok.LBrace) -> (
 						entries := []
-						result := (sub := (idx) => tokens.(idx) :: {
-							{type: Tok.RBrace, val: _, line: _, col: _} -> {
-								idx: idx + 1 `` RBrace
-							}
-							_ -> (
-								result := parseObjectEntry(tokens, idx)
-								entry := result.node
-								result.err :: {
-									() -> (
-										entries.len(entries) := entry
-										tokens.(result.idx) :: {
-											() -> {
-												node: ()
-												idx: result.idx
-												err: 'unexpected end of input, expected }'
-											}
-											_ -> tokens.(result.idx).type :: {
-												(Tok.RBrace) -> {
-													node: result.node
-													idx: result.idx + 1 `` RBrace
-												}
-												_ -> sub(result.idx)
-											}
-										}
-									)
-									_ -> result
-								}
-							)
-						})(idx + 1) `` LBrace
+						result := parseGroup(tokens, idx, parseObjectEntry, entries, Tok.RBrace)
 
 						{
 							node: {
@@ -511,7 +455,7 @@ parseAtom := (tokens, idx) => tokens.(idx) :: {
 					_ -> {
 						node: ()
 						idx: idx
-						err: 'token ' + tkString(tokens.(idx)) + ' not implemented! (parseAtom)'
+						err: f('unexpected token {{0}} (parseAtom)', [tkString(tokens.(idx))])
 					}
 				}
 			)
@@ -519,28 +463,30 @@ parseAtom := (tokens, idx) => tokens.(idx) :: {
 	}
 }
 
-parseListLiteral := (tokens, idx) => (
-	exprs := []
-	result := (sub := (idx) => tokens.(idx) :: {
-		{type: Tok.RBracket, val: _, line: _, col: _} -> {
-			idx: idx + 1 `` RBracket
+` not an official part of the Ink grammar, but an abstraction to
+	help parse the common production rule: list of homogeneous
+	node types appearing in sequence zero or more times `
+parseGroup := (tokens, idx, subparser, acc, guardTok) => (
+	(sub := (idx) => tokens.(idx) :: {
+		{type: guardTok, val: _, line: _, col: _} -> {
+			idx: idx + 1 `` guardTok
 		}
 		_ -> (
-			result := parseExpr(tokens, idx)
+			result := subparser(tokens, idx)
 			expr := result.node
 			result.err :: {
 				() -> (
-					exprs.len(exprs) := expr
+					acc.len(acc) := expr
 					tokens.(result.idx) :: {
 						() -> {
 							node: ()
 							idx: result.idx
-							err: 'unexpected end of input, expected ]'
+							err: 'unexpected end of input, expected ' + typeName(guardTok)
 						}
 						_ -> tokens.(result.idx).type :: {
-							(Tok.RBracket) -> {
+							guardTok -> {
 								node: result.node
-								idx: result.idx + 1 `` RBracket
+								idx: result.idx + 1 `` guardTok
 							}
 							_ -> sub(result.idx)
 						}
@@ -549,7 +495,12 @@ parseListLiteral := (tokens, idx) => (
 				_ -> result
 			}
 		)
-	})(idx + 1) `` LBracket
+	})(idx + 1) `` opening token
+)
+
+parseListLiteral := (tokens, idx) => (
+	exprs := []
+	result := parseGroup(tokens, idx, parseExpr, exprs, Tok.RBracket)
 
 	{
 		node: {
@@ -606,36 +557,7 @@ parseFnLiteral := (tokens, idx) => (
 				processBody(idx + 1)
 			)
 			(Tok.LParen) -> (
-				result := (sub := (idx) => tokens.(idx) :: {
-					{type: Tok.RParen, val: _, line: _, col: _} -> {
-						idx: idx + 1
-					}
-					_ -> (
-						result := parseExpr(tokens, idx)
-						expr := result.node
-						result.err :: {
-							() -> (
-								args.len(args) := expr
-								tokens.(result.idx) :: {
-									() -> {
-										node: ()
-										idx: result.idx
-										err: 'unexpected end of input, expected )'
-									}
-									_ -> tokens.(result.idx).type :: {
-										(Tok.RParen) -> {
-											node: result.node
-											idx: result.idx + 1 `` RParen
-										}
-										_ -> sub(result.idx)
-									}
-								}
-							)
-							_ -> result
-						}
-					)
-				})(idx + 1)
-
+				result := parseGroup(tokens, idx, parseExpr, args, Tok.RParen)
 				processBody(result.idx)
 			)
 			_ -> {
@@ -657,30 +579,7 @@ parseFnCall := (fnNode, tokens, idx) => (
 			err: 'unexpected end of input, expected fn args list'
 		}
 		_ -> (
-			result := (sub := (idx) => (
-				result := parseExpr(tokens, idx)
-				expr := result.node
-				result.err :: {
-					() -> (
-						args.len(args) := expr
-						tokens.(result.idx) :: {
-							() -> {
-								node: ()
-								idx: result.idx
-								err: 'unexpected end of input, expected )'
-							}
-							_ -> tokens.(result.idx).type :: {
-								(Tok.RParen) -> {
-									node: result.node
-									idx: result.idx + 1 `` RParen
-								}
-								_ -> sub(result.idx)
-							}
-						}
-					)
-					_ -> result
-				}
-			))(idx + 1)
+			result := parseGroup(tokens, idx, parseExpr, args, Tok.RParen)
 
 			{
 				node: {
@@ -702,29 +601,11 @@ parseMatchBody := (tokens, idx) => tokens.(idx + 1) :: {
 	}
 	_ -> (
 		clauses := []
-		result := (sub := (idx) => (
-			result := parseMatchClause(tokens, idx)
-			result.err :: {
-				() -> (
-					clauses.len(clauses) := result.node
-					tokens.(result.idx) :: {
-						() -> {
-							node: ()
-							idx: result.idx
-							err: 'unexpected end of input, expected }'
-						}
-						_ -> (
-							sub(result.idx)
-						)
-					}
-				)
-				_ -> result
-			}
-		))(idx + 1)
+		result := parseGroup(tokens, idx, parseMatchClause, clauses, Tok.RBrace)
 
 		{
 			node: clauses
-			idx: result.idx + 1 `` RBrace
+			idx: result.idx
 		}
 	)
 }
