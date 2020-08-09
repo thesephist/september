@@ -2,6 +2,7 @@ std := load('../vendor/std')
 
 log := std.log
 f := std.format
+map := std.map
 cat := std.cat
 
 str := load('../vendor/str')
@@ -15,6 +16,8 @@ Parse := load('parse')
 Node := Parse.Node
 
 render := node => node.type :: {
+	(Node.FnCall) -> renderFnCall(node)
+
 	(Node.UnaryExpr) -> renderUnaryExpr(node)
 	(Node.BinaryExpr) -> renderBinaryExpr(node)
 
@@ -23,6 +26,8 @@ render := node => node.type :: {
 	(Node.BooleanLiteral) -> renderBooleanLiteral(node)
 
 	(Node.Ident) -> renderIdent(node)
+
+	(Node.ExprList) -> renderExprList(node)
 
 	_ -> '(( "not implemented" ))'
 }
@@ -33,6 +38,14 @@ renderNumberLiteral := node => string(node.val)
 renderStringLiteral := node => '`' + replace(node.val, '`', '\\`') + '`'
 renderBooleanLiteral := node => string(node.val)
 renderIdent := node => node.val
+
+renderFnCall := node => f(
+	'{{0}}({{1}})'
+	[
+		render(node.fn)
+		cat(map(node.args, render), ', ')
+	]
+)
 
 renderUnaryExpr := node => node.op :: {
 	(Tok.NegOp) -> f('__ink_negate({{ 0 }})', [render(node.left)])
@@ -61,3 +74,5 @@ renderBinaryExpr := node => node.op :: {
 
 	_ -> renderErr(f('BinaryExpr with unknown op: {{0}}', [node.op]))
 }
+
+renderExprList := node => '(' + cat(map(node.exprs, render), ', ') + ')'

@@ -323,12 +323,7 @@ parseAtom := (tokens, idx) => tokens.(idx) :: {
 				consumePotentialFunctionCall := (fnNode, idx) => (
 					tokens.(idx) :: {
 						{type: Tok.LParen, val: _, line: _, col: _} -> (
-							result := parseFnCall(fnNode, tokens, idx)
-							` parseAtom should not consume trailing Separators, but
-								parseFnCall does because it ends with expressions.
-								so we backtrack one token `
-							result.idx := result.idx - 1
-							result
+							parseFnCall(fnNode, tokens, idx)
 						)
 						_ -> {
 							node: fnNode
@@ -381,7 +376,45 @@ parseAtom := (tokens, idx) => tokens.(idx) :: {
 						}, idx + 1)
 					}
 					(Tok.LParen) -> (
-						` TODO: expr list or fn literal `
+						exprs := []
+						result := (sub := (idx) => (
+							result := parseExpr(tokens, idx)
+							expr := result.node
+							result.err :: {
+								() -> (
+									exprs.len(exprs) := expr
+									tokens.(result.idx) :: {
+										() -> {
+											node: ()
+											idx: result.idx
+											err: 'unexpected end of input, expected )'
+										}
+										_ -> (
+											sub(result.idx)
+										)
+									}
+								)
+								_ -> result
+							}
+						))(idx + 1)
+
+						S := {
+							idx: result.idx + 1
+						}
+						tokens.(S.idx) :: {
+							() -> {
+								node: ()
+								idx: result.idx
+								err: 'unexpected end of input, expected continued expression'
+							}
+							_ -> tokens.(S.idx).type :: {
+								(Tok.FunctionArrow) -> () `` TODO: implement
+								_ -> consumePotentialFunctionCall({
+									type: Node.ExprList
+									exprs: exprs
+								}, S.idx)
+							}
+						}
 					)
 					(Tok.LBrace) -> (
 						` TODO: implement object literal `
@@ -405,3 +438,46 @@ parseAtom := (tokens, idx) => tokens.(idx) :: {
 		}
 	}
 }
+
+parseFnCall := (fnNode, tokens, idx) => (
+	args := []
+
+	tokens.(idx + 1) :: {
+		() -> {
+			node: ()
+			idx: idx
+			err: 'unexpected end of input, expected fn args list'
+		}
+		_ -> (
+			result := (sub := (idx) => (
+				result := parseExpr(tokens, idx)
+				expr := result.node
+				result.err :: {
+					() -> (
+						args.len(args) := expr
+						tokens.(result.idx) :: {
+							() -> {
+								node: ()
+								idx: result.idx
+								err: 'unexpected end of input, expected )'
+							}
+							_ -> (
+								sub(result.idx)
+							)
+						}
+					)
+					_ -> result
+				}
+			))(idx + 1)
+
+			{
+				node: {
+					type: Node.FnCall
+					fn: fnNode
+					args: args
+				}
+				idx: result.idx + 1 `` RParen
+			}
+		)
+	}
+)
