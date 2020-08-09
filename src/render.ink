@@ -127,6 +127,7 @@ renderBinaryExpr := node => node.op :: {
 	(Tok.DefineOp) -> node.decl? :: {
 		true -> f('let {{0}} = {{1}}', [render(node.left), render(node.right)])
 		_ -> [node.left.type, node.left.op] :: {
+			` DefineOp on a property `
 			[Node.BinaryExpr, Tok.AccessorOp] -> (
 				tmpDfn := clone(node.left)
 				tmpDfn.left := {
@@ -156,8 +157,22 @@ renderBinaryExpr := node => node.op :: {
 	}
 
 	(Tok.AccessorOp) -> node.right.type :: {
-		(Node.Ident) -> f('({{0}}.{{1}} !== undefined ? {{0}}.{{1}} : null)', [render(node.left), render(node.right)])
-		_ -> f('({{0}}[{{1}}] !== undefined ? {{0}}[{{1}}] : null)', [render(node.left), render(node.right)])
+		(Node.Ident) -> f(
+			cat([
+				'(() => {let __ink_acc_trgt = __as_ink_string({{0}})'
+				'return __is_ink_string(__ink_acc_trgt) ? __ink_acc_trgt.valueOf()[{{1}}] || null : (__ink_acc_trgt.{{1}} !== undefined ? __ink_acc_trgt.{{1}} : null)'
+				'})()'
+			], '; ')
+			[render(node.left), render(node.right)]
+		)
+		_ -> f(
+			cat([
+				'(() => {let __ink_acc_trgt = __as_ink_string({{0}})'
+				'return __is_ink_string(__ink_acc_trgt) ? __ink_acc_trgt.valueOf()[{{1}}] || null : (__ink_acc_trgt[{{1}}] !== undefined ? __ink_acc_trgt[{{1}}] : null)'
+				'})()'
+			], '; ')
+			[render(node.left), render(node.right)]
+		)
 	}
 
 	_ -> renderErr(f('BinaryExpr with unknown op: {{0}}', [node.op]))

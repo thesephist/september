@@ -144,7 +144,7 @@ function string(x) {
 		if (frac == 0) {
 			return wholeStr;
 		} else {
-			const fracStr = frac.toString().padEnd(10, '0').substr(1);
+			const fracStr = frac.toString().substr(0, 10).padEnd(10, '0').substr(1);
 			return wholeStr + fracStr;
 		}
 	} else if (__is_ink_string(x)) {
@@ -156,7 +156,7 @@ function string(x) {
 	} else if (Array.isArray(x) || typeof x === 'object') {
 		const entries = [];
 		for (const key of keys(x)) {
-			entries.push(`${key}: ${string(x[key])}`);
+			entries.push(`${key}: ${__is_ink_string(x[key]) ? `'${x[key].valueOf().replace('\\', '\\\\').replace('\'', '\\\'')}'` : string(x[key])}`);
 		}
 		return '{' + entries.join(', ') + '}';
 	} else if (x === undefined) {
@@ -166,7 +166,18 @@ function string(x) {
 }
 
 function number(x) {
-	// TODO
+	x = __as_ink_string(x);
+	if (x === null) {
+		return 0;
+	} else if (typeof x === 'number') {
+		return x;
+	} else if (__is_ink_string(x)) {
+		const n = parseFloat(x);
+		return isNaN(n) ? 0 : n;
+	} else if (typeof x === 'boolean') {
+		return x ? 1 : 0;
+	}
+	return 0;
 }
 
 function point(c) {
@@ -257,7 +268,7 @@ function __ink_eq(a, b) {
 	if (__is_ink_string(a) && __is_ink_string(b)) {
 		return a.valueOf() === b.valueOf();
 	}
-	if (typeof a === 'number' || typeof a === 'boolean') {
+	if (typeof a === 'number' || typeof a === 'boolean' || typeof a === 'function') {
 		return a === b;
 	}
 
