@@ -11,7 +11,7 @@ function args() {
 	return process.argv;
 }
 
-function __ink_in(cb) {
+function __ink_ident_in(cb) {
 	// TODO
 }
 
@@ -45,7 +45,7 @@ function write(path, offset, data, cb) {
 	// TODO
 }
 
-function __ink_delete(path, cb) {
+function __ink_ident_delete(path, cb) {
 	// TODO
 }
 
