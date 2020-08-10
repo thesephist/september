@@ -1,6 +1,6 @@
 # September 🐞
 
-**September** is an [Ink](https://github.com/thesephist/ink) to JavaScript compiler and toolchain for cross-compiling Ink applications to Node.js and the Web. September aims to be self-hosting on Node.js and pass all tests against Ink's core standard library test suite.
+**September** is an [Ink](https://github.com/thesephist/ink) to JavaScript compiler and toolchain for cross-compiling Ink applications to Node.js and the Web. September aims to be self-hosting on Node.js and pass all tests against Ink's core standard library test suite. I've also written about building September on the [Ink language blog](https://dotink.co/posts/september/).
 
 ![September banner image](september.jpg)
 
@@ -43,13 +43,15 @@ log(__Ink_String(`Hello, World!`))
 
 When we run Ink programs compiled to JavaScript, Ink requires a small [runtime](https://en.wikipedia.org/wiki/Runtime_library) (available in [runtime/ink.js](runtime/ink.js)). `september translate-full` prints the compiled JavaScript program alongside the necessary Ink runtime.
 
+`september run` will compile the Ink program and pass it to Node.js, if installed, to execute it immediately.
+
 ```sh
 $ september run a.ink # run Ink program in Node.js
 5
 Hello, World!
 ```
 
-`september run` currently swallows any errors emitted by Node.js. During debugging it's helpful to run Node separately and pass it the program through stdin.
+`september run` currently swallows any errors emitted by Node.js. During debugging it's helpful to run Node separately and pass it the program through stdin, so Node.js can emit any errors to stderr.
 
 ```sh
 $ september translate-full a.ink | node -- # run Ink program through Node, emit stderr
@@ -64,8 +66,8 @@ All September commands accept multiple files as input. If we want to run `a.ink`
 September, like any compiler, works in stages:
 
 1. **Construct an Ink parse tree** (`tokenize.ink`, `parse.ink`). This produces a data structure called the abstract syntax tree that represents well-formed Ink programs in a way the rest of September can understand. The syntax tree contains constructs like "binary addition expression" and "variable reference" and "function call".
-2. Semantic analysis and annotation over the syntax tree (`analyze.ink`). During semantic analysis, September tries to infer some information that isn't available in the syntax tree itself, and makes it available to the code generator so it can generate better, correct code. Semantic analysis also transforms some syntax tree nodes to simpler or more correct ones, like eliminating unused expressions or moving some variable declarations to the top of a scope.
-3. Code generation (`gen.ink`). The code generator takes the annotated syntax tree and outputs a JavaScript program that implements it.
+2. **Semantic analysis** and annotation over the syntax tree (`analyze.ink`). During semantic analysis, September tries to infer some information that isn't available in the syntax tree itself, and makes it available to the code generator so it can generate better, correct code. Semantic analysis also transforms some syntax tree nodes to simpler or more correct ones, like eliminating unused expressions or moving some variable declarations to the top of a scope.
+3. **Code generation** (`gen.ink`). The code generator takes the annotated syntax tree and outputs a JavaScript program that implements it.
 
 Because Ink and JavaScript have many high-level similarities, September doesn't need an intermediate representation -- code generation is done straight from an annotated syntax tree.
 
@@ -76,7 +78,7 @@ For operations where Ink and JavaScript behave differently, September has two so
 
 Most of the time, the correct translation is a combination of some inline transformation and runtime facility. For example, in Ink, the assignment operator `:=` can mutate strings. JavaScript strings are not mutable. So Ink transforms string mutations in Ink to a JavaScript expression that checks the type of an object with inline code, and conditionally calls a runtime function to mutate the mutable string object, which is implemented in the runtime.
 
-September makes the following transformations.
+**September makes the following code transformations.**
 
 ### Operators
 
@@ -92,7 +94,7 @@ September makes the following transformations.
 - The **null** value `()` is translated to `null` in JavaScript.
 - Ink **numbers** are 64-bit floating point numbers, and are translated directly to JavaScript `number` values.
 - Ink **booleans** are `true` and `false` symbols and are translated literally to JavaScript boolean values.
-- **strings** in Ink are mutable, which means we cannot simply substitute them for JavaScript strings. However, JavaScript strings are heavily optimized, and we want to take advantage of those optimizations. So to represent Ink strings, we wrap JavaScript strings
+- **Strings** in Ink are mutable, which means we cannot simply substitute them for JavaScript strings. However, JavaScript strings are heavily optimized, and we want to take advantage of those optimizations. So to represent Ink strings, we wrap JavaScript strings in an `__Ink_String` class, which exposes methods for mutation and degrades gracefully to native JavaScript strings when interfacing with native JavaScript functions that take strings.
 - Translating **composite** values in Ink is more involved. While the value itself behaves like JavaScript objects or arrays, property access and assignment semantics differ, and Ink uses the single composite type for both list and map style data structures. Specifically, we make the following translations:
 	- Composites initialized with `[]` are translated to JavaScript arrays.
 	- Composites initialized with `{}` are translated to JavaScript object literals.
@@ -104,9 +106,7 @@ Ink has a special value `_` (the empty identifier), which is mapped to a `Symbol
 
 ### Variable binding and scope
 
-Ink variables follow strict lexical binding and closely mirrors JavaScript's lexical binding rules. Because Ink variable bindings are always mutable, September defaults to translate all variable declarations (first variable reference in a scope) to a `let` declaration in JavaScript except top-level variables, which become globals in JavaScript.
-
-One important difference is that Ink has no explicit variable declarations; like in Python, simply assigning to a name will create a new variable in that scope if one does not exist already. In JavaScript, local variables are declared with a keyword. During semantic analysis, the compiler recognizes first assignments to names in a given scope and annotates each so it can be compiled to a `let` binding.
+Ink variables follow strict lexical binding and closely mirrors JavaScript's lexical binding rules. Because Ink variable bindings are always mutable, September defaults to translate all variable declarations (first variable reference in a scope) to a `let` declaration in JavaScript except top-level variables, which become globals in JavaScript. During semantic analysis, the compiler recognizes first assignments to names in a given scope and annotates each so it can be compiled to a `let` binding.
 
 In Ink, a variable declaration is an expression; in JavaScript it is a statement. This means variable bindings may need to be pulled out of an expression in Ink into its own statement in JavaScript.
 
@@ -157,8 +157,9 @@ September is designed to be an optimizing compiler. It aims to make the followin
 
 This is an informal list of things I'd like to implement, but haven't had time to yet.
 
+- Performance optimizations, including tail call elimination.
 - Tests should run through all valid test cases in `test/cases/` and compare that the output for programs running on Node.js matches the output when run on Ink's Go interpreter.
-- Interoperability with JavaScript classes. Ink programs can currently construct objects with the runtime function `obj := jsnew(constructor, args)`, but cannot extend on classes properly.
+- Interoperability with JavaScript classes. Ink programs can currently construct objects with the runtime function `obj := jsnew(constructor, args)`, but cannot extend JavaScript classes properly.
 
 ## Prior art
 
@@ -171,4 +172,4 @@ Language-to-language compilers is a rich and deep field with lots of priors. A f
 
 and of course,
 
-- [The canonical implementation of Ink](https://github.com/thesephist). The parser and tokenizer in September are close ports of their Go equivalents.
+- [The canonical implementation of Ink](https://github.com/thesephist). The parser and tokenizer in September are very much inspired by their Go equivalents.
