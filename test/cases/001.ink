@@ -7,7 +7,7 @@ double := x => 2 * x
 
 (console.log)(double(a + b))
 
-log := x => (console.log)('' + x)
+log := x => out(string(x) + char(10))
 
 even? := n => n % 2 :: {
 	0 -> true
@@ -15,6 +15,7 @@ even? := n => n % 2 :: {
 }
 log(even?(2))
 log(even?(3))
+log(even?(4))
 log(even?(5))
 
 log('Hello, World!')
