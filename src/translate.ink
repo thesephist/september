@@ -18,8 +18,8 @@ ndString := Parse.ndString
 Analyze := load('analyze')
 analyze := Analyze.analyze
 
-Render := load('render')
-render := Render.render
+Gen := load('gen')
+gen := Gen.gen
 
 Newline := char(10)
 
@@ -34,7 +34,7 @@ main := prog => (
 		'composite' -> (
 			`` each(nodes, node => log(ndString(node)))
 			nodes := map(nodes, analyze)
-			cat(map(nodes, render), ';' + Newline) + Newline
+			cat(map(nodes, gen), ';' + Newline) + Newline
 		)
 		` parse err `
 		'string' -> nodes
