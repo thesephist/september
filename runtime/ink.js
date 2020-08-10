@@ -209,7 +209,7 @@ function type(x) {
 
 function len(x) {
 	x = __as_ink_string(x);
-	switch (type(x).valueOf()) {
+	switch (type(x)) {
 		case 'string':
 			return x.valueOf().length;
 		case 'composite':

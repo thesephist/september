@@ -2,6 +2,7 @@
 	taken from thesephist/ink/samples/`
 
 std := load('./runtime/std')
+`` std := load('../../vendor/std')
 
 log := std.log
 filter := std.filter

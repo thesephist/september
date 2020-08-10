@@ -1,6 +1,6 @@
 # September 🐞
 
-**September** is an Ink to JavaScript compiler and toolchain for cross-compiling Ink applications to Node.js and the Web. September aims to be self-hosting on Node.js.
+**September** is an [Ink](https://github.com/thesephist/ink) to JavaScript compiler and toolchain for cross-compiling Ink applications to Node.js and the Web. September aims to be self-hosting on Node.js and pass all tests against Ink's core and standard library test suites.
 
 ## Usage
 
@@ -72,19 +72,25 @@ When calling a function that invokes tail calls (calls itself in a conditional b
 
 ### Module system and imports
 
-	// TODO
+The `load()` Ink builtin, normally used for modules, is mapped transparently to Node.js's `require()` in the runtime. This means Ink code compiled with September can reference other JavaScript programs with the built-in module system.
 
-## Optimizations
+Importing Ink modules with `load()` is a design and work in progress.
+
+## Performance
+
+Modern JavaScript runtimes are fast (though perhaps at the expense of memory footprint). Even in the current prototype that performs little to no optimizing transformations, Ink code compiled with September runs significantly faster on the V8 engine than when the Ink code is run natively with the [Go-based interpreter](https://github.com/thesephist/ink), for certain workloads like numeric compute.
+
+### Optimizations
 
 September is an optimizing compiler. It aims to make the following optimizations.
 
-### General optimizations
+**General optimizations**
 
 - [ ] Constant propagation
 - [ ] Dead branch elimination
 - [ ] Common subexpression elimination
 
-### Ink and September-specific optimizations
+**Ink and September-specific optimizations**
 
 - [ ] Tail call elimination (unrolling recursion into loops)
 - [ ] Static branch elimination by type propagation
