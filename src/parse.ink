@@ -147,7 +147,7 @@ parseBinaryExpr := (left, op, prevPriority, tokens, idx) => (
 				choices := [
 					` priority is lower than the calling function's last op
 						so return control to the parent binary op `
-					prevPriority > priority
+					~(prevPriority < priority)
 					` priority is lower than the previous op but higher than
 						the parent, so it's ok to be left-heavy in this tree`
 					~(opPriority(ops.(len(ops) - 1)) < priority)

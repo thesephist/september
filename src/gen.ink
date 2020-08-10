@@ -104,19 +104,22 @@ genUnaryExpr := node => node.op :: {
 }
 
 genBinaryExpr := node => node.op :: {
-	(Tok.AddOp) -> f('{{0}} + {{1}}', [gen(node.left), gen(node.right)])
-	(Tok.SubOp) -> f('{{0}} - {{1}}', [gen(node.left), gen(node.right)])
-	(Tok.MulOp) -> f('{{0}} * {{1}}', [gen(node.left), gen(node.right)])
-	(Tok.DivOp) -> f('{{0}} / {{1}}', [gen(node.left), gen(node.right)])
-	(Tok.ModOp) -> f('{{0}} % {{1}}', [gen(node.left), gen(node.right)])
+	(Tok.AddOp) -> f(
+		'__as_ink_string({{0}} + {{1}})'
+		[gen(node.left), gen(node.right)]
+	)
+	(Tok.SubOp) -> f('({{0}} - {{1}})', [gen(node.left), gen(node.right)])
+	(Tok.MulOp) -> f('({{0}} * {{1}})', [gen(node.left), gen(node.right)])
+	(Tok.DivOp) -> f('({{0}} / {{1}})', [gen(node.left), gen(node.right)])
+	(Tok.ModOp) -> f('({{0}} % {{1}})', [gen(node.left), gen(node.right)])
 
 	(Tok.AndOp) -> f('__ink_and({{0}}, {{1}})', [gen(node.left), gen(node.right)])
 	(Tok.XorOp) -> f('__ink_xor({{0}}, {{1}})', [gen(node.left), gen(node.right)])
 	(Tok.OrOp) -> f('__ink_or({{0}}, {{1}})', [gen(node.left), gen(node.right)])
 
 	(Tok.EqOp) -> f('__ink_eq({{0}}, {{1}})', [gen(node.left), gen(node.right)])
-	(Tok.GtOp) -> f('{{0}} > {{1}}', [gen(node.left), gen(node.right)])
-	(Tok.LtOp) -> f('{{0}} < {{1}}', [gen(node.left), gen(node.right)])
+	(Tok.GtOp) -> f('({{0}} > {{1}})', [gen(node.left), gen(node.right)])
+	(Tok.LtOp) -> f('({{0}} < {{1}})', [gen(node.left), gen(node.right)])
 
 	(Tok.DefineOp) -> node.decl? :: {
 		true -> f('let {{0}} = {{1}}', [gen(node.left), gen(node.right)])
@@ -159,16 +162,14 @@ genBinaryExpr := node => node.op :: {
 		(Node.Ident) -> f(
 			cat([
 				'(() => {let __ink_acc_trgt = __as_ink_string({{0}})'
-				'return __is_ink_string(__ink_acc_trgt) ? __ink_acc_trgt.valueOf()[{{1}}] || null : (__ink_acc_trgt.{{1}} !== undefined ? __ink_acc_trgt.{{1}} : null)'
-				'})()'
+				'return __is_ink_string(__ink_acc_trgt) ? __ink_acc_trgt.valueOf()[{{1}}] || null : (__ink_acc_trgt.{{1}} !== undefined ? __ink_acc_trgt.{{1}} : null)})()'
 			], '; ')
 			[gen(node.left), gen(node.right)]
 		)
 		_ -> f(
 			cat([
 				'(() => {let __ink_acc_trgt = __as_ink_string({{0}})'
-				'return __is_ink_string(__ink_acc_trgt) ? __ink_acc_trgt.valueOf()[{{1}}] || null : (__ink_acc_trgt[{{1}}] !== undefined ? __ink_acc_trgt[{{1}}] : null)'
-				'})()'
+				'return __is_ink_string(__ink_acc_trgt) ? __ink_acc_trgt.valueOf()[{{1}}] || null : (__ink_acc_trgt[{{1}}] !== undefined ? __ink_acc_trgt[{{1}}] : null)})()'
 			], '; ')
 			[gen(node.left), gen(node.right)]
 		)

@@ -103,7 +103,7 @@ function ln(n) {
 }
 
 function floor(n) {
-	return ~~n;
+	return Math.floor(n);
 }
 
 function load(path) {
@@ -138,7 +138,7 @@ function string(x) {
 	} else if (typeof x === 'number') {
 		const sign = x > 0 ? 1 : -1;
 		x = sign * x;
-		const whole = ~~x;
+		const whole = Math.floor(x);
 		const frac = x - whole;
 		const wholeStr = (sign * whole).toString();
 		if (frac == 0) {
@@ -274,6 +274,9 @@ function __ink_eq(a, b) {
 
 	// deep equality check for composite types
 	if (typeof a !== 'object') {
+		return false;
+	}
+	if (len(a) !== len(b)) {
 		return false;
 	}
 	for (const key of keys(a)) {
