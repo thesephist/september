@@ -14,7 +14,6 @@ Node := Parse.Node
 ndString := Parse.ndString
 
 analyzeSubexpr := (node, ctx) => node.type :: {
-	` TODO: recursively analyze all subexpressions of all nodes `
 	(Node.ExprList) -> (
 		declaredNames := (ctx.declaredNames :: {
 			() -> {}
@@ -50,7 +49,7 @@ analyzeSubexpr := (node, ctx) => node.type :: {
 
 		[node.body.type, node.body.op] :: {
 			[Node.BinaryExpr, Tok.DefineOp] -> (
-				[node.body.left.type] :: {
+				node.body.left.type :: {
 					(Node.Ident) -> declaredNames.(node.body.left.val) :: {
 						() -> node.body.decl? := true
 					}

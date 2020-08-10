@@ -37,17 +37,15 @@ gen := node => node.type :: {
 	(Node.ExprList) -> genExprList(node)
 	(Node.MatchExpr) -> genMatchExpr(node)
 
-	_ -> 'throw new Error("not implemented!")'
+	_ -> genErr('not implemented!')
 }
 
 genErr := msg => f('throw new Error("{{0}}")', [msg])
-
 genEmpty := () => '__Ink_Empty'
 
-genNumberLiteral := node => string(node.val)
-genStringLiteral := node => f('__Ink_String(`{{0}}`)'
-	[replace(node.val, '`', '\\`')])
 genBooleanLiteral := node => string(node.val)
+genNumberLiteral := node => string(node.val)
+genStringLiteral := node => f('__Ink_String(`{{0}}`)', [replace(node.val, '`', '\\`')])
 
 genListLiteral := node => '[' + cat(map(node.exprs, gen), ', ') + ']'
 
@@ -75,13 +73,16 @@ genAsReturn := node => [node.type, node.op, node.left] :: {
 }
 
 genFnArg := (node, i) => node.type :: {
-	(Node.EmptyIdent) -> '__' + string(i) `` avoid duplicate arg names
 	(Node.Ident) -> genIdent(node)
+	(Node.EmptyIdent) -> '__' + string(i) `` avoid duplicate arg names
 	_ -> '__' + string(i)
 }
 
-genFnLiteral := node => f('({{0}}) => {{1}}', [
-	cat(map(node.args, genFnArg), ', ')
+genFnLiteral := node => f('{{0}} => {{1}}', [
+	node.args :: {
+		[_] -> genFnArg(node.args.0, 0)
+		_ -> '(' + cat(map(node.args, genFnArg), ', ') + ')'
+	}
 	node.body.type :: {
 		(Node.ObjectLiteral) -> '(' + gen(node.body) + ')'
 		(Node.ExprList) -> gen(node.body)
@@ -92,14 +93,7 @@ genFnLiteral := node => f('({{0}}) => {{1}}', [
 genFnCall := node => f(
 	'{{0}}({{1}})'
 	[
-		node.fn.type :: {
-			(Node.Ident) -> node.fn.val :: {
-				'in' -> '__ink_in'
-				'delete' -> '__ink_delete'
-				_ -> gen(node.fn)
-			}
-			_ -> gen(node.fn)
-		}
+		gen(node.fn)
 		cat(map(node.args, gen), ', ')
 	]
 )
@@ -135,6 +129,11 @@ genBinaryExpr := node => node.op :: {
 					val: '__ink_assgn_trgt'
 				}
 				f(
+					` this production preserves two Ink semantics:
+						- strings can be mutably assigned to.
+						- assignment on strings and composites return the
+							assignment target, not the assigned value,
+							as the value of the expression. `
 					cat([
 						'(() => {let __ink_assgn_trgt = __as_ink_string({{0}})'
 						'__is_ink_string(__ink_assgn_trgt) ? __ink_assgn_trgt.assign({{3}}, {{2}}) : {{1}} = {{2}}'

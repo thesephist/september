@@ -12,6 +12,7 @@ a := 5
 log(a)
 
 fn := x => a := x
+fn2 := (_, y) => (a := y)
 fn(10)
 log(a)
 
