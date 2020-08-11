@@ -369,7 +369,11 @@ parseAtom := (tokens, idx) => tokens.(idx) :: {
 				consumePotentialFunctionCall := (fnNode, idx) => (
 					tokens.(idx) :: {
 						{type: Tok.LParen, val: _, line: _, col: _} -> (
-							parseFnCall(fnNode, tokens, idx)
+							result := parseFnCall(fnNode, tokens, idx)
+							result.err :: {
+								() -> consumePotentialFunctionCall(result.node, result.idx)
+								_ -> result
+							}
 						)
 						_ -> {
 							node: fnNode
