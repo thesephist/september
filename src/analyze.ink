@@ -89,6 +89,11 @@ analyzeSubexpr := (node, ctx) => node.type :: {
 		each(node.clauses, n => analyzeSubexpr(n, ctx))
 		node
 	)
+	(Node.FnCall) -> (
+		analyzeSubexpr(node.fn, ctx)
+		each(node.args, n => analyzeSubexpr(n, ctx))
+		node
+	)
 	(Node.BinaryExpr) -> (
 		analyzeSubexpr(node.left, ctx)
 		analyzeSubexpr(node.right, ctx)
