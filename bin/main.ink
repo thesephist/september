@@ -72,6 +72,7 @@ given.verb :: {
 	'repl' -> log('command "repl" not implemented!')
 	_ -> (
 		commands := [
+			'print'
 			'translate'
 			'translate-full'
 			'run'

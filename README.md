@@ -59,6 +59,21 @@ $ september translate-full a.ink | node -- # run Ink program through Node, emit 
 Hello, World!
 ```
 
+Because September contains a fully self-hosted tokenizer and parser, September can also simply syntax highlight Ink programs. To print an Ink program with syntax highlighting, use `september print`.
+
+```sh
+$ september print a.ink
+std := load('./runtime/std')
+
+log := std.log
+
+a := 2
+b := 3
+
+log(a + b)
+log('Hello, World!')
+```
+
 All September commands accept multiple files as input. If we want to run `a.ink` and `b.ink`, just run `september run a.ink b.ink`.
 
 ## How it works
