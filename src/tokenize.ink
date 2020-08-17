@@ -247,10 +247,6 @@ tokenizeWithOpt := (s, lexComments) => (
 							i := S.i
 
 							S.i := S.i + advance
-							ensureSeparator()
-							S.line := S.line + 1
-							S.col := 0
-
 							lexComments :: {
 								true -> commit(token(
 									Tok.Comment
@@ -260,6 +256,9 @@ tokenizeWithOpt := (s, lexComments) => (
 									i
 								))
 							}
+							ensureSeparator()
+							S.line := S.line + 1
+							S.col := 0
 							sub()
 						)
 					}
