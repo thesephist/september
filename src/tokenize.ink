@@ -22,6 +22,8 @@ iota := mkiota().next
 Tok := {
 	Separator: iota()
 
+	Comment: iota()
+
 	Ident: iota()
 	EmptyIdent: iota()
 
@@ -79,7 +81,7 @@ token := (type, val, line, col, i) => {
 	i: i
 }
 
-tokenize := s => (
+tokenizeWithOpt := (s, lexComments) => (
 	S := {
 		i: ~1
 		buf: ''
@@ -227,17 +229,46 @@ tokenize := s => (
 				'`' -> s.(S.i + 1) :: {
 					` line comment `
 					'`' -> advance := index(slice(s, S.i, len(s)), Newline) :: {
-						~1 -> finalize()
+						~1 -> (
+							lexComments :: {
+								true -> commit(token(
+									Tok.Comment
+									slice(s, S.i, len(s))
+									S.line
+									S.col
+									S.i
+								))
+							}
+							finalize()
+						)
 						_ -> (
+							line := S.line
+							col := S.col
+							i := S.i
+
 							S.i := S.i + advance
 							ensureSeparator()
 							S.line := S.line + 1
 							S.col := 0
+
+							lexComments :: {
+								true -> commit(token(
+									Tok.Comment
+									slice(s, i, S.i)
+									line
+									col
+									i
+								))
+							}
 							sub()
 						)
 					}
 					_ -> (
 						` block comment, keep taking until end of block `
+						line := S.line
+						col := S.col
+						i := S.i
+
 						S.i := S.i + 1
 						(sub := () => s.(S.i) :: {
 							'`' -> S.col := S.col + 1
@@ -255,6 +286,15 @@ tokenize := s => (
 								sub()
 							)
 						})()
+						lexComments :: {
+							true -> commit(token(
+								Tok.Comment
+								slice(s, i, S.i + 1)
+								line
+								col
+								i
+							))
+						}
 						sub()
 					)
 				}
@@ -410,3 +450,7 @@ tokenize := s => (
 		}
 	))()
 )
+
+tokenize := s => tokenizeWithOpt(s, false)
+
+tokenizeWithComments := s => tokenizeWithOpt(s, true)

@@ -29,6 +29,7 @@ Color := {
 	Magenta: 35
 	Cyan: 36
 	White: 37
+	Gray: 90
 	Reset: 0
 }
 Background := {
@@ -40,6 +41,7 @@ Background := {
 	Magenta: 45
 	Cyan: 46
 	White: 47
+	Gray: 100
 	Reset: 0
 }
 
@@ -55,6 +57,7 @@ Blue := style(Weight.Regular, Color.Blue)
 Magenta := style(Weight.Regular, Color.Magenta)
 Cyan := style(Weight.Regular, Color.Cyan)
 White := style(Weight.Regular, Color.White)
+Gray := style(Weight.Regular, Color.Gray)
 
 Bold := style(Weight.Bold, Color.Reset)
 BoldBlack := style(Weight.Bold, Color.Black)
@@ -65,6 +68,7 @@ BoldBlue := style(Weight.Bold, Color.Blue)
 BoldMagenta := style(Weight.Bold, Color.Magenta)
 BoldCyan := style(Weight.Bold, Color.Cyan)
 BoldWhite := style(Weight.Bold, Color.White)
+BoldGray := style(Weight.Bold, Color.Gray)
 
 Dim := style(Weight.Dim, Color.Reset)
 DimBlack := style(Weight.Dim, Color.Black)
@@ -75,4 +79,5 @@ DimBlue := style(Weight.Dim, Color.Blue)
 DimMagenta := style(Weight.Dim, Color.Magenta)
 DimCyan := style(Weight.Dim, Color.Cyan)
 DimWhite := style(Weight.Dim, Color.White)
+DimGray := style(Weight.Dim, Color.Gray)
 
