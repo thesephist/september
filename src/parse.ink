@@ -105,7 +105,7 @@ parse := tokens => (
 	nodes := []
 
 	tokens.0 :: {
-		{type: Tok.Separator, val: _, line: _, col: _} -> (
+		{type: Tok.Separator, val: _, line: _, col: _, i: _} -> (
 			tokens := slice(tokens, 1, len(tokens))
 		)
 	}
@@ -230,7 +230,7 @@ parseExpr := (tokens, idx) => (
 	}
 
 	consumeDanglingSeparator := () => tokens.(S.idx) :: {
-		{type: Tok.Separator, val: _, line: _, col: _} -> S.idx := S.idx + 1
+		{type: Tok.Separator, val: _, line: _, col: _, i: _} -> S.idx := S.idx + 1
 	}
 
 	result := parseAtom(tokens, S.idx)
@@ -255,7 +255,7 @@ parseExpr := (tokens, idx) => (
 						S.idx := result.idx
 						result.err :: {
 							() -> tokens.(S.idx) :: {
-								{type: Tok.MatchColon, val: _, line: _, col: _} -> (
+								{type: Tok.MatchColon, val: _, line: _, col: _, i: _} -> (
 									S.idx := S.idx + 1
 									produceMatchExpr(binExpr)
 								)
@@ -368,7 +368,7 @@ parseAtom := (tokens, idx) => tokens.(idx) :: {
 
 				consumePotentialFunctionCall := (fnNode, idx) => (
 					tokens.(idx) :: {
-						{type: Tok.LParen, val: _, line: _, col: _} -> (
+						{type: Tok.LParen, val: _, line: _, col: _, i: _} -> (
 							result := parseFnCall(fnNode, tokens, idx)
 							result.err :: {
 								() -> consumePotentialFunctionCall(result.node, result.idx)
@@ -479,7 +479,7 @@ parseAtom := (tokens, idx) => tokens.(idx) :: {
 	node types appearing in sequence zero or more times `
 parseGroup := (tokens, idx, subparser, acc, guardTok) => (
 	(sub := (idx) => tokens.(idx) :: {
-		{type: guardTok, val: _, line: _, col: _} -> {
+		{type: guardTok, val: _, line: _, col: _, i: _} -> {
 			idx: idx + 1 `` guardTok
 		}
 		_ -> (
@@ -529,7 +529,7 @@ parseFnLiteral := (tokens, idx) => (
 	args := []
 
 	processBody := idx => tokens.(idx) :: {
-		{type: Tok.FunctionArrow, val: _, line: _, col: _} -> (
+		{type: Tok.FunctionArrow, val: _, line: _, col: _, i: _} -> (
 			result := parseExpr(tokens, idx + 1)
 			result.err :: {
 				() -> {

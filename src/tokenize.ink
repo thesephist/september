@@ -22,21 +22,11 @@ iota := mkiota().next
 Tok := {
 	Separator: iota()
 
-	UnaryExpr: iota()
-	BinaryExpr: iota()
-	MatchExpr: iota()
-	MatchClause: iota()
-
 	Ident: iota()
 	EmptyIdent: iota()
 
-	FnCall: iota()
-
 	NumberLiteral: iota()
 	StringLiteral: iota()
-	ObjectLiteral: iota()
-	ListLiteral: iota()
-	FnLiteral: iota()
 
 	TrueLiteral: iota()
 	FalseLiteral: iota()
@@ -81,11 +71,12 @@ typeName := type => reduce(keys(Tok), (acc, k) => Tok.(k) :: {
 tkString := tok => f('{{ 0 }}({{ 1 }}) @ {{2}}:{{3}}'
 	[typeName(tok.type), tok.val, tok.line, tok.col])
 
-token := (type, val, line, col) => {
+token := (type, val, line, col, i) => {
 	type: type
 	val: val
 	line: line
 	col: col
+	i: i
 }
 
 tokenize := s => (
@@ -108,7 +99,17 @@ tokenize := s => (
 		S.lastType := tok.type
 		tokens.len(tokens) := tok
 	)
-	simpleCommitChar := type => simpleCommit(token(type, (), S.line, S.col))
+	simpleCommitChar := type => simpleCommit(token(
+		type
+		()
+		S.line
+		S.col
+		type :: {
+			(Tok.TrueLiteral) -> S.i - 4
+			(Tok.FalseLiteral) -> S.i - 5
+			_ -> S.i - 1
+		}
+	))
 	commitClear := () => S.buf :: {
 		'' -> _
 		_ -> (
@@ -123,12 +124,14 @@ tokenize := s => (
 						number(cbuf)
 						S.line
 						S.col - len(cbuf)
+						S.i - len(cbuf)
 					))
 					false -> simpleCommit(token(
 						Tok.Ident
 						cbuf
 						S.line
 						S.col - len(cbuf)
+						S.i - len(cbuf)
 					))
 				}
 			}
@@ -138,7 +141,7 @@ tokenize := s => (
 		commitClear()
 		simpleCommit(tok)
 	)
-	commitChar := type => commit(token(type, (), S.line, S.col))
+	commitChar := type => commit(token(type, (), S.line, S.col, S.i))
 	ensureSeparator := () => (
 		commitClear()
 		S.lastType :: {
@@ -189,6 +192,7 @@ tokenize := s => (
 						S.strbuf
 						S.strbufLine
 						S.strbufCol
+						S.i - len(S.strbuf) - 1
 					))
 					S.inStringLiteral := false
 					sub()

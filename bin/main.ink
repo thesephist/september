@@ -12,6 +12,7 @@ readFile := std.readFile
 cli := load('../vendor/cli')
 
 ` september subcommands `
+highlight := load('../src/highlight').main
 build := load('../src/build').main
 translate := load('../src/translate').main
 
@@ -25,6 +26,14 @@ given.verb :: {
 		its dependency graph to generate a single JavaScript binary
 		that comprises the entire application `
 	'build' -> log('command "build" not implemented!')
+	` syntax-highlight input Ink programs from the token stream
+		and print them to stdout `
+	'print' -> (
+		files := given.args
+		each(files, path => (
+			readFile(path, data => out(highlight(data)))
+		))
+	)
 	` translate translates input Ink programs to JavaScript and
 		print them to stdout `
 	'translate' -> (
