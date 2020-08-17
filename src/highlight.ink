@@ -23,8 +23,6 @@ Tokenize := load('tokenize')
 Tok := Tokenize.Tok
 tokenize := Tokenize.tokenizeWithComments
 
-Newline := char(10)
-
 ` associating token types with their highlight colors `
 colorFn := tok => tok.type :: {
 	(Tok.Separator) -> Norm
@@ -67,6 +65,7 @@ colorFn := tok => tok.type :: {
 	(Tok.RBracket) -> Cyan
 	(Tok.LBrace) -> Cyan
 	(Tok.RBrace) -> Cyan
+
 	_ -> () `` should error, unreachable
 }
 
