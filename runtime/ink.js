@@ -118,7 +118,7 @@ function __is_ink_string(x) {
 	if (x == null) {
 		return false;
 	}
-	return x.__is_ink_string;
+	return x.__mark_ink_string;
 }
 
 // both JS native strings and __Ink_Strings are valid in the runtime
@@ -328,7 +328,7 @@ const __Ink_String = s => {
 	if (__is_ink_string(s)) return s;
 
 	return {
-		__is_ink_string: true,
+		__mark_ink_string: true,
 		assign(i, slice) {
 			if (i === s.length) {
 				return s += slice;
