@@ -81,7 +81,7 @@ All September commands accept multiple files as input. If we want to run `a.ink`
 September, like any compiler, works in stages:
 
 1. **Construct an Ink parse tree** (`tokenize.ink`, `parse.ink`). This produces a data structure called the abstract syntax tree that represents well-formed Ink programs in a way the rest of September can understand. The syntax tree contains constructs like "binary addition expression" and "variable reference" and "function call".
-2. **Semantic analysis** and annotation over the syntax tree (`analyze.ink`). During semantic analysis, September tries to infer some information that isn't available in the syntax tree itself, and makes it available to the code generator so it can generate better, correct code. Semantic analysis also transforms some syntax tree nodes to simpler or more correct ones, like eliminating unused expressions or moving some variable declarations to the top of a scope.
+2. **Semantic analysis** and annotation over the syntax tree (`analyze.ink`). During semantic analysis, September tries to infer some information that isn't available in the syntax tree itself, and makes it available to the code generator so it can generate better, correct code. Semantic analysis also transforms some syntax tree nodes to simpler or more correct ones, like eliminating unused expressions, moving some variable declarations to the top of a scope, or transforming tail calls to be eliminated into loops.
 3. **Code generation** (`gen.ink`). The code generator takes the annotated syntax tree and outputs a JavaScript program that implements it.
 
 Because Ink and JavaScript have many high-level similarities, September doesn't need an intermediate representation -- code generation is done straight from an annotated syntax tree.
@@ -131,9 +131,9 @@ Further optimizations may be added in the future. In particular, normalizing exp
 
 The behavior of Ink functions is a strict subset of that of JavaScript functions, so in translating Ink to JavaScript, we can map function definitions and invocations directly to JavaScript equivalents.
 
-One caveat is that, although modern JavaScript functions are tail-call-optimized by specification, only JavaScriptCore (Safari) implements it in practice. This means functions with tail calls need to be optimized when September compiles them.
+One caveat is that, although modern JavaScript functions are tail-call-optimized by specification, only JavaScriptCore (Safari) implements it in practice. This means functions with recursive tail calls need to be transformed during compilation into a non-recursive form.
 
-When calling a function that invokes tail calls (calls itself possibly in a conditional branch by its original bound name within its body), September detects it and automatically unrolls it into a trampoline construct with a JavaScript `while` loop. This means September eliminates self-tail calls. However, JS limitations mean September cannot tail-call-eliminate mutual recursion.
+When calling a function that invokes recursive tail calls (calls to itself by its original bound name within its body), September detects it and automatically unrolls it into a [trampoline](https://en.wikipedia.org/wiki/Trampoline_(computing)) construct with a JavaScript `while` loop. This means September eliminates self-tail calls. However, JS limitations mean September cannot tail-call-eliminate mutual recursion.
 
 ### Match expressions
 
@@ -155,17 +155,10 @@ Modern JavaScript runtimes are fast (though perhaps at the expense of memory foo
 
 September is designed to be an optimizing compiler. It aims to make the following optimizations.
 
-**General optimizations**
-
-- [ ] Constant propagation
 - [ ] Dead branch elimination
-- [ ] Elimination of unused values
 - [ ] Common subexpression elimination
-
-**Ink and September-specific optimizations**
-
 - [ ] Static branch elimination by type propagation
-- [ ] Inlined match expressions
+- [ ] Inlined match expressions (rather than relying on a runtime function)
 
 ## Future work
 
