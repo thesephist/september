@@ -743,8 +743,8 @@ m('std list: map/filter/reduce[Back]/each/reverse/flatten, join/append')
 		'12345678910')
 	t('std.reduceBack', reduceBack(list, (acc, n) => acc + string(n), '')
 		'10987654321')
-	`` t('std.flatten', flatten([[1, 2, 3], [4], [], [[5], 6, 7, [8, 9, 10]]])
-	`` 	[1, 2, 3, 4, [5], 6, 7, [8, 9, 10]])
+	t('std.flatten', flatten([[1, 2, 3], [4], [], [[5], 6, 7, [8, 9, 10]]])
+		[1, 2, 3, 4, [5], 6, 7, [8, 9, 10]])
 	t('std.reverse', reverse(list), [10, 9, 8, 7, 6, 5, 4, 3, 2, 1])
 	t('std.join', join(list, list), [1, 2, 3, 4, 5, 6, 7, 8, 9, 10
 		1, 2, 3, 4, 5, 6, 7, 8, 9, 10])
@@ -885,39 +885,39 @@ m('str.upper/lower/digit/letter/ws? -- checked char ranges')
 
 	matchesAt? := str.matchesAt?
 
-	`` t('matchesAt? returns true for empty substring'
-	`` 	matchesAt?('some substring', ''), true)
-	`` t('matchesAt? returns true if string matches at idx'
-	`` 	matchesAt?('some substring', 'substr', 5), true)
-	`` t('matchesAt? returns false if string matches not at idx'
-	`` 	matchesAt?('some substring', 'substr', 2), false)
-	`` t('matchesAt? returns false if no match'
-	`` 	matchesAt?('some substring', 'other', 5), false)
+	t('matchesAt? returns true for empty substring'
+		matchesAt?('some substring', ''), true)
+	t('matchesAt? returns true if string matches at idx'
+		matchesAt?('some substring', 'substr', 5), true)
+	t('matchesAt? returns false if string matches not at idx'
+		matchesAt?('some substring', 'substr', 2), false)
+	t('matchesAt? returns false if no match'
+		matchesAt?('some substring', 'other', 5), false)
 
-	`` index := str.index
+	index := str.index
 
-	`` t('index = 0 for empty string', index('quick brown fox', ''), 0)
-	`` t('index returns index of substring'
-	`` 	index('quick brown fox', 'ick'), 2)
-	`` t('index returns 0 if matches whole string'
-	`` 	index('quick brown fox', 'quick brown fox'), 0)
-	`` t('index returns ~1 if no match'
-	`` 	index('quick brown fox', 'lazy dog'), ~1)
-	`` t('index returned is first occurrence'
-	`` 	index('quick brown fox', 'o'), 8)
-	`` t('index works if substring longer than string'
-	`` 	index('quick brown fox', 'jumps over the lazy dog'), ~1)
+	t('index = 0 for empty string', index('quick brown fox', ''), 0)
+	t('index returns index of substring'
+		index('quick brown fox', 'ick'), 2)
+	t('index returns 0 if matches whole string'
+		index('quick brown fox', 'quick brown fox'), 0)
+	t('index returns ~1 if no match'
+		index('quick brown fox', 'lazy dog'), ~1)
+	t('index returned is first occurrence'
+		index('quick brown fox', 'o'), 8)
+	t('index works if substring longer than string'
+		index('quick brown fox', 'jumps over the lazy dog'), ~1)
 
-	`` contains? := str.contains?
+	contains? := str.contains?
 
-	`` t('contains? = true for empty string'
-	`` 	contains?('quick brown fox', ''), true)
-	`` t('contains? = true if string fits substring'
-	`` 	contains?('quick brown fox', 'fox'), true)
-	`` t('contains? = true if substring fits multiple times'
-	`` 	contains?('quick brown fox', 'o'), true)
-	`` t('contains? = false if not contained'
-	`` 	contains?('quick brown fox', 'lazy dog'), false)
+	t('contains? = true for empty string'
+		contains?('quick brown fox', ''), true)
+	t('contains? = true if string fits substring'
+		contains?('quick brown fox', 'fox'), true)
+	t('contains? = true if substring fits multiple times'
+		contains?('quick brown fox', 'o'), true)
+	t('contains? = false if not contained'
+		contains?('quick brown fox', 'lazy dog'), false)
 
 	lower := str.lower
 	upper := str.upper
@@ -933,71 +933,71 @@ m('str.upper/lower/digit/letter/ws? -- checked char ranges')
 
 	replace := str.replace
 
-	`` t('replace is no-op if empty string'
-	`` 	replace('he stared in amazement', '', '__')
-	`` 'he stared in amazement')
-	`` t('replace replaces all instances of given substring'
-	`` 	replace('he stared in amazement', 'e', 'j')
-	`` 'hj starjd in amazjmjnt')
-	`` t('replace works for multi-character substring'
-	`` 	replace('he is staring in amazement', 'in', 'xx')
-	`` 'he is starxxg xx amazement')
-	`` t('replace accounts for different old/new substring lengths'
-	`` 	replace('he is staring in amazement', 'in', 'wonder')
-	`` 'he is starwonderg wonder amazement')
-	`` t('replace deals gracefully with overlapping matches'
-	`` 	replace('wow what a sight, wow', 'ow', 'wow')
-	`` 'wwow what a sight, wwow')
-	`` t('replace works if new substring is empty'
-	`` 	replace('wow what a sight, wow', 'wow', '')
-	`` ' what a sight, ')
-	`` t('replace works even if new str contains recursive match'
-	`` 	replace('a {} b {} c {}', '{}', '{}-{}')
-	`` 'a {}-{} b {}-{} c {}-{}')
+	t('replace is no-op if empty string'
+		replace('he stared in amazement', '', '__')
+	'he stared in amazement')
+	t('replace replaces all instances of given substring'
+		replace('he stared in amazement', 'e', 'j')
+	'hj starjd in amazjmjnt')
+	t('replace works for multi-character substring'
+		replace('he is staring in amazement', 'in', 'xx')
+	'he is starxxg xx amazement')
+	t('replace accounts for different old/new substring lengths'
+		replace('he is staring in amazement', 'in', 'wonder')
+	'he is starwonderg wonder amazement')
+	t('replace deals gracefully with overlapping matches'
+		replace('wow what a sight, wow', 'ow', 'wow')
+	'wwow what a sight, wwow')
+	t('replace works if new substring is empty'
+		replace('wow what a sight, wow', 'wow', '')
+	' what a sight, ')
+	t('replace works even if new str contains recursive match'
+		replace('a {} b {} c {}', '{}', '{}-{}')
+	'a {}-{} b {}-{} c {}-{}')
 
-	`` split := str.split
+	split := str.split
 
-	`` t('split splits string into letters if empty'
-	`` 	split('alphabet', '')
-	`` ['a', 'l', 'p', 'h', 'a', 'b', 'e', 't'])
-	`` t('splits with given delimiter'
-	`` 	split('a,b,cde,fg', ',')
-	`` ['a', 'b', 'cde', 'fg'])
-	`` t('splits with empty strings if delimiter in start or end'
-	`` 	split(', original taste, ', ', ')
-	`` ['', 'original taste', ''])
-	`` t('returns one chunk if no match of delimiter found'
-	`` 	split('no taste whatsoever!', 'grand')
-	`` ['no taste whatsoever!'])
+	t('split splits string into letters if empty'
+		split('alphabet', '')
+	['a', 'l', 'p', 'h', 'a', 'b', 'e', 't'])
+	t('splits with given delimiter'
+		split('a,b,cde,fg', ',')
+	['a', 'b', 'cde', 'fg'])
+	t('splits with empty strings if delimiter in start or end'
+		split(', original taste, ', ', ')
+	['', 'original taste', ''])
+	t('returns one chunk if no match of delimiter found'
+		split('no taste whatsoever!', 'grand')
+	['no taste whatsoever!'])
 
-	`` trimPrefix := str.trimPrefix
-	`` trimSuffix := str.trimSuffix
-	`` trim := str.trim
+	trimPrefix := str.trimPrefix
+	trimSuffix := str.trimSuffix
+	trim := str.trim
 
-	`` t('trimPrefix is a no-op with empty string'
-	`` 	trimPrefix('???????what???', ''), '???????what???')
-	`` t('trimPrefix trims given prefix until it does not prefix'
-	`` 	trimPrefix('???????what???', '?'), 'what???')
-	`` t('trimPrefix works with multi-char prefix'
-	`` 	trimPrefix('abababacdef', 'ab'), 'acdef')
-	`` t('trimPrefix only trims whole multiples of prefix'
-	`` 	trimPrefix('aaaaaaaadef', 'aaa'), 'aadef')
+	t('trimPrefix is a no-op with empty string'
+		trimPrefix('???????what???', ''), '???????what???')
+	t('trimPrefix trims given prefix until it does not prefix'
+		trimPrefix('???????what???', '?'), 'what???')
+	t('trimPrefix works with multi-char prefix'
+		trimPrefix('abababacdef', 'ab'), 'acdef')
+	t('trimPrefix only trims whole multiples of prefix'
+		trimPrefix('aaaaaaaadef', 'aaa'), 'aadef')
 
-	`` t('trimSuffix is a no-op with empty string'
-	`` 	trimSuffix('???????what???', ''), '???????what???')
-	`` t('trimSuffix trims given suffix until it does not suffix'
-	`` 	trimSuffix('???????what???', '?'), '???????what')
-	`` t('trimSuffix works with multi-char suffix'
-	`` 	trimSuffix('abacdefabcabab', 'ab'), 'abacdefabc')
-	`` t('trimSuffix only trims whole multiples of suffix'
-	`` 	trimSuffix('xxxyyyyyyyy', 'yyy'), 'xxxyy')
+	t('trimSuffix is a no-op with empty string'
+		trimSuffix('???????what???', ''), '???????what???')
+	t('trimSuffix trims given suffix until it does not suffix'
+		trimSuffix('???????what???', '?'), '???????what')
+	t('trimSuffix works with multi-char suffix'
+		trimSuffix('abacdefabcabab', 'ab'), 'abacdefabc')
+	t('trimSuffix only trims whole multiples of suffix'
+		trimSuffix('xxxyyyyyyyy', 'yyy'), 'xxxyy')
 
-	`` t('trim trims given string from both sides'
-	`` 	trim('????what?????', '?'), 'what')
-	`` t('trim is a no-op with empty string'
-	`` 	trim('????what?????', ''), '????what?????')
-	`` t('trim trims whole multiples of substring from both sides'
-	`` 	trim('????what?????', '???'), '?what??')
+	t('trim trims given string from both sides'
+		trim('????what?????', '?'), 'what')
+	t('trim is a no-op with empty string'
+		trim('????what?????', ''), '????what?????')
+	t('trim trims whole multiples of substring from both sides'
+		trim('????what?????', '???'), '?what??')
 )
 
 ` end test suite, print result `
