@@ -133,7 +133,7 @@ The behavior of Ink functions is a strict subset of that of JavaScript functions
 
 One caveat is that, although modern JavaScript functions are tail-call-optimized by specification, only JavaScriptCore (Safari) implements it in practice. This means functions with tail calls need to be optimized when September compiles them.
 
-When calling a function that invokes tail calls (calls itself in a conditional branch by its original bound name within its body), September detects it and automatically unrolls it into a JavaScript `while` loop. _This behavior is planned, but not implemented yet._
+When calling a function that invokes tail calls (calls itself possibly in a conditional branch by its original bound name within its body), September detects it and automatically unrolls it into a trampoline construct with a JavaScript `while` loop. This means September eliminates self-tail calls. However, JS limitations mean September cannot tail-call-eliminate mutual recursion.
 
 ### Match expressions
 
@@ -164,7 +164,6 @@ September is designed to be an optimizing compiler. It aims to make the followin
 
 **Ink and September-specific optimizations**
 
-- [ ] Tail call elimination (unrolling recursion into loops)
 - [ ] Static branch elimination by type propagation
 - [ ] Inlined match expressions
 
@@ -172,7 +171,7 @@ September is designed to be an optimizing compiler. It aims to make the followin
 
 This is an informal list of things I'd like to implement, but haven't had time to yet.
 
-- Performance optimizations, including tail call elimination.
+- Performance optimizations
 - Tests should run through all valid test cases in `test/cases/` and compare that the output for programs running on Node.js matches the output when run on Ink's Go interpreter.
 - Interoperability with JavaScript classes. Ink programs can currently construct objects with the runtime function `obj := jsnew(constructor, args)`, but cannot extend JavaScript classes properly.
 

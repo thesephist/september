@@ -93,7 +93,10 @@ genFnLiteral := node => f('{{0}} => {{1}}', [
 genFnCall := node => f(
 	'{{0}}({{1}})'
 	[
-		gen(node.fn)
+		node.fn.type :: {
+			(Node.FnLiteral) -> '(' + gen(node.fn) + ')'
+			_ -> gen(node.fn)
+		}
 		cat(map(node.args, gen), ', ')
 	]
 )
