@@ -350,6 +350,8 @@ const __Ink_String = s => {
 
 /* Ink -> JavaScript interop helpers */
 
+const bind = (target, fn) => target[fn].bind(target);
+
 function jsnew(Constructor, args) {
 	return new Constructor(...args);
 }
