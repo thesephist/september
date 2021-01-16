@@ -14,6 +14,7 @@ tkString := Tokenize.tkString
 
 Parse := load('parse')
 Node := Parse.Node
+ident? := Parse.ident?
 ndString := Parse.ndString
 
 analyzeSubexpr := (node, ctx, tail?) => node.type :: {
@@ -30,7 +31,7 @@ analyzeSubexpr := (node, ctx, tail?) => node.type :: {
 		` implement local lexical scope and let-keyword binding `
 		defns := filter(
 			node.exprs
-			expr => [expr.type, expr.op, expr.left] = [Node.BinaryExpr, Tok.DefineOp, {type: Node.Ident, val: _}]
+			expr => [expr.type, expr.op, ident?(expr.left)] = [Node.BinaryExpr, Tok.DefineOp, true]
 		)
 		each(defns, defn => declaredNames.(defn.left.val) :: {
 			true -> ()

@@ -15,6 +15,7 @@ Tok := Tokenize.Tok
 
 Parse := load('parse')
 Node := Parse.Node
+ident? := Parse.ident?
 ndString := Parse.ndString
 
 gen := node => node.type :: {
@@ -63,11 +64,11 @@ genObjectLiteral := node => '{' + cat(map(node.entries, genObjectEntry), ', ') +
 ` some expressions (like assignments to variables ) are expressions in Ink
 	but statements in JS, and cannot be returned. This helper fn adds a workaround
 	so that we can "return assignments" by returning a reference to the assigned variable. `
-genAsReturn := node => [node.type, node.op, node.left] :: {
+genAsReturn := node => [node.type, node.op, ident?(node.left)] :: {
 	[
 		Node.BinaryExpr
 		Tok.DefineOp
-		{type: Node.Ident, val: _}
+		true
 	] -> f('{{0}}; return {{1}}', [gen(node), gen(node.left)])
 	_ -> f('return {{0}}', [gen(node)])
 }

@@ -99,7 +99,12 @@ opPriority := tok => tok.type :: {
 	_ -> ~1
 }
 
-isBinaryOp := tok => opPriority(tok) > ~1
+ident? := node => node :: {
+	() -> false
+	_ -> node.type = Node.Ident
+}
+
+binaryOp? := tok => opPriority(tok) > ~1
 
 parse := tokens => (
 	nodes := []
@@ -141,7 +146,7 @@ parseBinaryExpr := (left, op, prevPriority, tokens, idx) => (
 	ops := [op]
 	nodes := [left, right]
 	result.err :: {
-		() -> (sub := () => isBinaryOp(tokens.(S.idx)) :: {
+		() -> (sub := () => binaryOp?(tokens.(S.idx)) :: {
 			true -> (
 				priority := opPriority(tokens.(S.idx))
 				choices := [
