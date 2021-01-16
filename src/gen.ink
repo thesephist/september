@@ -40,7 +40,7 @@ gen := node => node.type :: {
 	_ -> genErr('not implemented!')
 }
 
-genErr := msg => f('throw new Error("{{0}}")', [msg])
+genErr := msg => f('throw new Error("{{0}}")', [replace(msg, '"', '\\"')])
 genEmpty := () => '__Ink_Empty'
 
 genBooleanLiteral := node => string(node.val)
