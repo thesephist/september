@@ -65,11 +65,7 @@ genObjectLiteral := node => '{' + cat(map(node.entries, genObjectEntry), ', ') +
 	but statements in JS, and cannot be returned. This helper fn adds a workaround
 	so that we can "return assignments" by returning a reference to the assigned variable. `
 genAsReturn := node => [node.type, node.op, ident?(node.left)] :: {
-	[
-		Node.BinaryExpr
-		Tok.DefineOp
-		true
-	] -> f('{{0}}; return {{1}}', [gen(node), gen(node.left)])
+	[Node.BinaryExpr, Tok.DefineOp, true] -> f('{{0}}; return {{1}}', [gen(node), gen(node.left)])
 	_ -> f('return {{0}}', [gen(node)])
 }
 
@@ -87,7 +83,10 @@ genFnLiteral := node => f('{{0}} => {{1}}', [
 	node.body.type :: {
 		(Node.ObjectLiteral) -> '(' + gen(node.body) + ')'
 		(Node.ExprList) -> gen(node.body)
-		_ -> '{' + genAsReturn(node.body) + '}'
+		_ -> node.body.decl? :: {
+			true -> '{' + genAsReturn(node.body) + '}'
+			_ -> gen(node.body)
+		}
 	}
 ])
 
@@ -232,14 +231,20 @@ genIdent := node => node.val :: {
 	)
 }
 
+genExprListExprs := exprs => '(() => {' + cat(map(exprs, (expr, i) => (
+	i + 1 :: {
+		len(exprs) -> genAsReturn(expr)
+		_ -> gen(expr)
+	}
+)), '; ') + '})()'
+
 genExprList := node => node.exprs :: {
 	[] -> 'null'
-	_ -> '(() => {' + cat(map(node.exprs, (expr, i) => (
-		i + 1 :: {
-			len(node.exprs) -> genAsReturn(expr)
-			_ -> gen(expr)
-		}
-	)), '; ') + '})()'
+	[_] -> node.exprs.(0).decl? :: {
+		false -> f('({{0}})', [gen(node.exprs.0)])
+		_ -> genExprListExprs(node.exprs)
+	}
+	_ -> genExprListExprs(node.exprs)
 }
 
 genMatchExpr := node => f('__ink_match({{0}}, [{{1}}])', [
