@@ -70,7 +70,7 @@ function time() {
 }
 
 function wait(duration, cb) {
-	setTimeout(cb, duration * 1000)
+	setTimeout(cb, duration * 1000);
 	return null;
 }
 
@@ -181,7 +181,7 @@ function number(x) {
 }
 
 function point(c) {
-	c = __as_ink_string(c)
+	c = __as_ink_string(c);
 	return c.valueOf().charCodeAt(0);
 }
 
@@ -190,7 +190,7 @@ function char(n) {
 }
 
 function type(x) {
-	x = __as_ink_string(x)
+	x = __as_ink_string(x);
 	if (x === null) {
 		return '()';
 	} else if (typeof x === 'number') {
@@ -220,7 +220,7 @@ function len(x) {
 				return Object.getOwnPropertyNames(x).length;
 			}
 		default:
-			throw new Error('len() takes a string or composite value, but got ' + string(x))
+			throw new Error('len() takes a string or composite value, but got ' + string(x));
 	}
 }
 
@@ -232,7 +232,7 @@ function keys(x) {
 			return Object.getOwnPropertyNames(x);
 		}
 	}
-	throw new Error('keys() takes a composite value, but got ' + string(x).valueOf())
+	throw new Error('keys() takes a composite value, but got ' + string(x).valueOf());
 }
 
 /* Ink semantics polyfill */
@@ -249,8 +249,8 @@ function __ink_negate(x) {
 }
 
 function __ink_eq(a, b) {
-	a = __as_ink_string(a)
-	b = __as_ink_string(b)
+	a = __as_ink_string(a);
+	b = __as_ink_string(b);
 	if (a === __Ink_Empty || b === __Ink_Empty) {
 		return true;
 	}
