@@ -292,6 +292,17 @@ function __ink_and(a, b) {
 		return a && b;
 	}
 
+	if (__is_ink_string(a) && __is_ink_string(b)) {
+		const max = Math.max(a.length, b.length);
+		const get = (s, i) => s.valueOf().charCodeAt(i) || 0;
+
+		let res = '';
+		for (let i = 0; i < max; i ++) {
+			res += String.fromCharCode(get(a, i) & get(b, i));
+		}
+		return res;
+	}
+
 	return a & b;
 }
 
@@ -300,12 +311,34 @@ function __ink_or(a, b) {
 		return a || b;
 	}
 
+	if (__is_ink_string(a) && __is_ink_string(b)) {
+		const max = Math.max(a.length, b.length);
+		const get = (s, i) => s.valueOf().charCodeAt(i) || 0;
+
+		let res = '';
+		for (let i = 0; i < max; i ++) {
+			res += String.fromCharCode(get(a, i) | get(b, i));
+		}
+		return res;
+	}
+
 	return a | b;
 }
 
 function __ink_xor(a, b) {
 	if (typeof a === 'boolean' && typeof b === 'boolean') {
 		return (a && !b) || (!a && b);
+	}
+
+	if (__is_ink_string(a) && __is_ink_string(b)) {
+		const max = Math.max(a.length, b.length);
+		const get = (s, i) => s.valueOf().charCodeAt(i) || 0;
+
+		let res = '';
+		for (let i = 0; i < max; i ++) {
+			res += String.fromCharCode(get(a, i) ^ get(b, i));
+		}
+		return res;
 	}
 
 	return a ^ b;
