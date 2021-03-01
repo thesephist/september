@@ -252,7 +252,7 @@ genMatchExpr := node => f('__ink_match({{0}}, [{{1}}])', [
 	cat(map(node.clauses, genMatchClause), ', ')
 ])
 
-genMatchClause := node => f('[() => {{0}}, () => {{1}}]', [
+genMatchClause := node => f('[() => ({{0}}), () => ({{1}})]', [
 	gen(node.target)
 	gen(node.expr)
 ])
