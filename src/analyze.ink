@@ -18,7 +18,7 @@ ident? := Parse.ident?
 ndString := Parse.ndString
 
 analyzeSubexpr := (node, ctx, tail?) => node.type :: {
-	(Node.ExprList) -> (
+	Node.ExprList -> (
 		declaredNames := (ctx.declaredNames :: {
 			() -> {}
 			_ -> ctx.declaredNames
@@ -45,16 +45,16 @@ analyzeSubexpr := (node, ctx, tail?) => node.type :: {
 
 		node
 	)
-	(Node.FnLiteral) -> (
+	Node.FnLiteral -> (
 		declaredNames := {}
 		each(node.args, n => n.type :: {
-			(Node.Ident) -> declaredNames.(n.val) := true
+			Node.Ident -> declaredNames.(n.val) := true
 		})
 
 		[node.body.type, node.body.op] :: {
 			[Node.BinaryExpr, Tok.DefineOp] -> (
 				node.body.left.type :: {
-					(Node.Ident) -> declaredNames.(node.body.left.val) :: {
+					Node.Ident -> declaredNames.(node.body.left.val) :: {
 						() -> node.body.decl? := true
 					}
 				}
@@ -88,17 +88,17 @@ analyzeSubexpr := (node, ctx, tail?) => node.type :: {
 		}
 		node
 	)
-	(Node.MatchExpr) -> (
+	Node.MatchExpr -> (
 		node.condition := analyzeSubexpr(node.condition, ctx, false)
 		node.clauses := map(node.clauses, n => analyzeSubexpr(n, ctx, true))
 		node
 	)
-	(Node.MatchClause) -> (
+	Node.MatchClause -> (
 		node.target := analyzeSubexpr(node.target, ctx, false)
 		node.expr := analyzeSubexpr(node.expr, ctx, true)
 		node
 	)
-	(Node.FnCall) -> (
+	Node.FnCall -> (
 		node.fn := analyzeSubexpr(node.fn, ctx, false)
 		node.args := map(node.args, n => analyzeSubexpr(n, ctx, false))
 
@@ -127,7 +127,7 @@ analyzeSubexpr := (node, ctx, tail?) => node.type :: {
 			_ -> node
 		}
 	)
-	(Node.BinaryExpr) -> (
+	Node.BinaryExpr -> (
 		defn? := node.op = Tok.DefineOp
 		simpleName? := node.left.type = Node.Ident
 		fnLiteral? := node.right.type = Node.FnLiteral

@@ -28,7 +28,8 @@ x => 9 + x * x
 	true -> 9 & 3 + x * x
 	` block comment
 		that spans multiple lines `
-	(double(a, b, c) - 1) -> 2 + 3 = 1 + 4
+	Node.CaseArrow -> pow(10 + 12, 2)
+	double(a, b, c) - 1 -> 2 + 3 = 1 + 4
 	_ -> (
 		log(true)
 		log(~false)

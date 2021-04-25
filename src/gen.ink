@@ -19,24 +19,24 @@ ident? := Parse.ident?
 ndString := Parse.ndString
 
 gen := node => node.type :: {
-	(Node.FnCall) -> genFnCall(node)
+	Node.FnCall -> genFnCall(node)
 
-	(Node.UnaryExpr) -> genUnaryExpr(node)
-	(Node.BinaryExpr) -> genBinaryExpr(node)
+	Node.UnaryExpr -> genUnaryExpr(node)
+	Node.BinaryExpr -> genBinaryExpr(node)
 
-	(Node.NumberLiteral) -> genNumberLiteral(node)
-	(Node.StringLiteral) -> genStringLiteral(node)
-	(Node.BooleanLiteral) -> genBooleanLiteral(node)
-	(Node.FnLiteral) -> genFnLiteral(node)
+	Node.NumberLiteral -> genNumberLiteral(node)
+	Node.StringLiteral -> genStringLiteral(node)
+	Node.BooleanLiteral -> genBooleanLiteral(node)
+	Node.FnLiteral -> genFnLiteral(node)
 
-	(Node.ListLiteral) -> genListLiteral(node)
-	(Node.ObjectLiteral) -> genObjectLiteral(node)
+	Node.ListLiteral -> genListLiteral(node)
+	Node.ObjectLiteral -> genObjectLiteral(node)
 
-	(Node.Ident) -> genIdent(node)
-	(Node.EmptyIdent) -> genEmpty()
+	Node.Ident -> genIdent(node)
+	Node.EmptyIdent -> genEmpty()
 
-	(Node.ExprList) -> genExprList(node)
-	(Node.MatchExpr) -> genMatchExpr(node)
+	Node.ExprList -> genExprList(node)
+	Node.MatchExpr -> genMatchExpr(node)
 
 	_ -> genErr('not implemented!')
 }
@@ -52,9 +52,9 @@ genListLiteral := node => '[' + cat(map(node.exprs, gen), ', ') + ']'
 
 genObjectEntry := node => f('{{0}}: {{1}}', [
 	node.key.type :: {
-		(Node.Ident) -> gen(node.key)
-		(Node.EmptyIdent) -> gen(node.key)
-		(Node.NumberLiteral) -> gen(node.key)
+		Node.Ident -> gen(node.key)
+		Node.EmptyIdent -> gen(node.key)
+		Node.NumberLiteral -> gen(node.key)
 		_ -> '[' + gen(node.key) + ']'
 	}
 	gen(node.val)
@@ -70,8 +70,8 @@ genAsReturn := node => [node.type, node.op, ident?(node.left)] :: {
 }
 
 genFnArg := (node, i) => node.type :: {
-	(Node.Ident) -> genIdent(node)
-	(Node.EmptyIdent) -> '__' + string(i) `` avoid duplicate arg names
+	Node.Ident -> genIdent(node)
+	Node.EmptyIdent -> '__' + string(i) `` avoid duplicate arg names
 	_ -> '__' + string(i)
 }
 
@@ -81,8 +81,8 @@ genFnLiteral := node => f('{{0}} => {{1}}', [
 		_ -> '(' + cat(map(node.args, genFnArg), ', ') + ')'
 	}
 	node.body.type :: {
-		(Node.ObjectLiteral) -> '(' + gen(node.body) + ')'
-		(Node.ExprList) -> gen(node.body)
+		Node.ObjectLiteral -> '(' + gen(node.body) + ')'
+		Node.ExprList -> gen(node.body)
 		_ -> node.body.decl? :: {
 			true -> '{' + genAsReturn(node.body) + '}'
 			_ -> gen(node.body)
@@ -94,7 +94,7 @@ genFnCall := node => f(
 	'{{0}}({{1}})'
 	[
 		node.fn.type :: {
-			(Node.FnLiteral) -> '(' + gen(node.fn) + ')'
+			Node.FnLiteral -> '(' + gen(node.fn) + ')'
 			_ -> gen(node.fn)
 		}
 		cat(map(node.args, gen), ', ')
@@ -102,29 +102,29 @@ genFnCall := node => f(
 )
 
 genUnaryExpr := node => node.op :: {
-	(Tok.NegOp) -> f('__ink_negate({{ 0 }})', [gen(node.left)])
+	Tok.NegOp -> f('__ink_negate({{ 0 }})', [gen(node.left)])
 	_ -> genErr(f('UnaryExpr with unknown op: {{0}}', [node.op]))
 }
 
 genBinaryExpr := node => node.op :: {
-	(Tok.AddOp) -> f(
+	Tok.AddOp -> f(
 		'__as_ink_string({{0}} + {{1}})'
 		[gen(node.left), gen(node.right)]
 	)
-	(Tok.SubOp) -> f('({{0}} - {{1}})', [gen(node.left), gen(node.right)])
-	(Tok.MulOp) -> f('({{0}} * {{1}})', [gen(node.left), gen(node.right)])
-	(Tok.DivOp) -> f('({{0}} / {{1}})', [gen(node.left), gen(node.right)])
-	(Tok.ModOp) -> f('({{0}} % {{1}})', [gen(node.left), gen(node.right)])
+	Tok.SubOp -> f('({{0}} - {{1}})', [gen(node.left), gen(node.right)])
+	Tok.MulOp -> f('({{0}} * {{1}})', [gen(node.left), gen(node.right)])
+	Tok.DivOp -> f('({{0}} / {{1}})', [gen(node.left), gen(node.right)])
+	Tok.ModOp -> f('({{0}} % {{1}})', [gen(node.left), gen(node.right)])
 
-	(Tok.AndOp) -> f('__ink_and({{0}}, {{1}})', [gen(node.left), gen(node.right)])
-	(Tok.XorOp) -> f('__ink_xor({{0}}, {{1}})', [gen(node.left), gen(node.right)])
-	(Tok.OrOp) -> f('__ink_or({{0}}, {{1}})', [gen(node.left), gen(node.right)])
+	Tok.AndOp -> f('__ink_and({{0}}, {{1}})', [gen(node.left), gen(node.right)])
+	Tok.XorOp -> f('__ink_xor({{0}}, {{1}})', [gen(node.left), gen(node.right)])
+	Tok.OrOp -> f('__ink_or({{0}}, {{1}})', [gen(node.left), gen(node.right)])
 
-	(Tok.EqOp) -> f('__ink_eq({{0}}, {{1}})', [gen(node.left), gen(node.right)])
-	(Tok.GtOp) -> f('({{0}} > {{1}})', [gen(node.left), gen(node.right)])
-	(Tok.LtOp) -> f('({{0}} < {{1}})', [gen(node.left), gen(node.right)])
+	Tok.EqOp -> f('__ink_eq({{0}}, {{1}})', [gen(node.left), gen(node.right)])
+	Tok.GtOp -> f('({{0}} > {{1}})', [gen(node.left), gen(node.right)])
+	Tok.LtOp -> f('({{0}} < {{1}})', [gen(node.left), gen(node.right)])
 
-	(Tok.DefineOp) -> node.decl? :: {
+	Tok.DefineOp -> node.decl? :: {
 		true -> f('let {{0}} = {{1}}', [gen(node.left), gen(node.right)])
 		_ -> [node.left.type, node.left.op] :: {
 			` DefineOp on a property `
@@ -161,8 +161,8 @@ genBinaryExpr := node => node.op :: {
 		}
 	}
 
-	(Tok.AccessorOp) -> node.right.type :: {
-		(Node.Ident) -> f(
+	Tok.AccessorOp -> node.right.type :: {
+		Node.Ident -> f(
 			cat([
 				'(() => {let __ink_acc_trgt = __as_ink_string({{0}})'
 				'return __is_ink_string(__ink_acc_trgt) ? __ink_acc_trgt.valueOf()[{{1}}] || null : (__ink_acc_trgt.{{1}} !== undefined ? __ink_acc_trgt.{{1}} : null)})()'
@@ -182,8 +182,8 @@ genBinaryExpr := node => node.op :: {
 }
 
 genDefineTarget := node => node.type :: {
-	(Node.BinaryExpr) -> node.right.type :: {
-		(Node.Ident) -> f('({{0}}.{{1}})', [gen(node.left), gen(node.right)])
+	Node.BinaryExpr -> node.right.type :: {
+		Node.Ident -> f('({{0}}.{{1}})', [gen(node.left), gen(node.right)])
 		_ -> f('({{0}}[{{1}}])', [gen(node.left), gen(node.right)])
 	}
 	_ -> gen(node)

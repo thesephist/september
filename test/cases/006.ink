@@ -30,8 +30,11 @@ suite := label => (
 		log(f('suite: {{ label }}', {label: label}))
 		each(s.msgs, m => log('  ' + m))
 		s.passed :: {
-			(s.all) -> log(f('ALL {{ passed }} / {{ all }} PASSED', s))
-			_ -> log(f('PARTIAL: {{ passed }} / {{ all }} PASSED', s))
+			s.all -> log(f('ALL {{ passed }} / {{ all }} PASSED', s))
+			_ -> (
+				log(f('PARTIAL: {{ passed }} / {{ all }} PASSED', s))
+				exit(1)
+			)
 		}
 	)
 
@@ -247,6 +250,40 @@ m('match expressions')
 		_ -> '??'
 	})
 	t('match expression follows through to empty identifier', x, '??')
+
+	x := (
+		y := {z: 9}
+		12 :: {
+			y.z + 1 + 5 - 3 -> 'correct'
+			12 -> 'incorrect'
+			10 -> 'incorrect'
+			_ -> 'wrong'
+		}
+	)
+	t('match expression target can be complex binary expressions', x, 'correct')
+
+	x := ('a' :: {
+		1 :: {
+			2 -> 'b'
+			1 -> 'a'
+		} -> 'c'
+		_ -> 'd'
+	})
+	t('match expression in match target position', x, 'c')
+
+	N := {
+		A: 1
+		B: 2
+		C: 3
+		D: 4
+	}
+	x := (3 :: {
+		N.A -> 'a'
+		N.B -> 'b'
+		N.C -> 'c'
+		N.D -> 'd'
+	})
+	t('match expression target can be object property', x, 'c')
 
 	x := [1, 2, [3, 4, ['thing']], {a: ['b']}]
 	t('composite deep equality after match expression'

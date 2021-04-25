@@ -38,63 +38,63 @@ Node := {
 }
 
 ndString := node => node.type :: {
-	(Node.NumberLiteral) -> f('Lit({{ val }})', node)
-	(Node.StringLiteral) -> f('Lit({{ val }})', node)
-	(Node.BooleanLiteral) -> f('Lit({{ val }})', node)
+	Node.NumberLiteral -> f('Lit({{ val }})', node)
+	Node.StringLiteral -> f('Lit({{ val }})', node)
+	Node.BooleanLiteral -> f('Lit({{ val }})', node)
 
-	(Node.UnaryExpr) -> f('UnrExpr({{0}} {{1}})'
+	Node.UnaryExpr -> f('UnrExpr({{0}} {{1}})'
 		[typeName(node.op), ndString(node.left)])
-	(Node.BinaryExpr) -> f('BinExpr({{0}} {{1}} {{2}})'
+	Node.BinaryExpr -> f('BinExpr({{0}} {{1}} {{2}})'
 		[ndString(node.left), typeName(node.op), ndString(node.right)])
 
-	(Node.Ident) -> f('Ident({{val}})', node)
-	(Node.EmptyIdent) -> 'EmptyIdent'
+	Node.Ident -> f('Ident({{val}})', node)
+	Node.EmptyIdent -> 'EmptyIdent'
 
-	(Node.FnCall) -> f('Call({{0}} {{1}})', [
+	Node.FnCall -> f('Call({{0}} {{1}})', [
 		ndString(node.fn)
 		'(' + cat(map(node.args, ndString), ' ') + ')'
 	])
-	(Node.FnLiteral) -> f('Fn({{0}} {{1}})', [
+	Node.FnLiteral -> f('Fn({{0}} {{1}})', [
 		'(' + cat(map(node.args, ndString), ' ') + ')'
 		ndString(node.body)
 	])
 
-	(Node.ExprList) -> '(' + cat(map(node.exprs, ndString), ' ') + ')'
-	(Node.MatchExpr) -> f('Match({{0}} {{1}})', [
+	Node.ExprList -> '(' + cat(map(node.exprs, ndString), ' ') + ')'
+	Node.MatchExpr -> f('Match({{0}} {{1}})', [
 		ndString(node.condition)
 		'{' + cat(map(node.clauses, ndString), ' ') + '}'
 	])
-	(Node.MatchClause) -> f('Clause({{0}} {{1}})'
+	Node.MatchClause -> f('Clause({{0}} {{1}})'
 		[ndString(node.target), ndString(node.expr)])
 
-	(Node.ListLiteral) -> f('List({{0}})'
+	Node.ListLiteral -> f('List({{0}})'
 		[cat(map(node.exprs, ndString), ' ')])
-	(Node.ObjectLiteral) -> f('Obj({{0}})'
+	Node.ObjectLiteral -> f('Obj({{0}})'
 		[cat(map(node.entries, ndString), ' ')])
-	(Node.ObjectEntry) -> f('Entry({{0}} {{1}})'
+	Node.ObjectEntry -> f('Entry({{0}} {{1}})'
 		[ndString(node.key), ndString(node.val)])
 
 	_ -> 'Unknown(' + string(node) + ')'
 }
 
 opPriority := tok => tok.type :: {
-	(Tok.AccessorOp) -> 100
-	(Tok.ModOp) -> 80
+	Tok.AccessorOp -> 100
+	Tok.ModOp -> 80
 
-	(Tok.MulOp) -> 50
-	(Tok.DivOp) -> 50
-	(Tok.AddOp) -> 40
-	(Tok.SubOp) -> 40
+	Tok.MulOp -> 50
+	Tok.DivOp -> 50
+	Tok.AddOp -> 40
+	Tok.SubOp -> 40
 
-	(Tok.GtOp) -> 30
-	(Tok.LtOp) -> 30
-	(Tok.EqOp) -> 30
+	Tok.GtOp -> 30
+	Tok.LtOp -> 30
+	Tok.EqOp -> 30
 
-	(Tok.AndOp) -> 20
-	(Tok.XorOp) -> 15
-	(Tok.OrOp) -> 10
+	Tok.AndOp -> 20
+	Tok.XorOp -> 15
+	Tok.OrOp -> 10
 
-	(Tok.DefineOp) -> 0
+	Tok.DefineOp -> 0
 
 	_ -> ~1
 }
@@ -297,37 +297,42 @@ parseExpr := (tokens, idx) => (
 					)
 
 					next.type :: {
-						(Tok.Separator) -> {
+						Tok.Separator -> {
 							node: atom
 							idx: S.idx
 							err: ()
 						}
-						` these belong to the parente atom that contains
+						` these belong to the parent atom that contains
 							this expression, so return without consuming token `
-						(Tok.KeyValueSeparator) -> {
+						Tok.RightParen -> {
 							node: atom
 							idx: S.idx - 1
 							err: ()
 						}
-						(Tok.RightParen) -> {
+						Tok.KeyValueSeparator -> {
 							node: atom
 							idx: S.idx - 1
 							err: ()
 						}
-						(Tok.AddOp) -> produceBinaryExpr()
-						(Tok.SubOp) -> produceBinaryExpr()
-						(Tok.MulOp) -> produceBinaryExpr()
-						(Tok.DivOp) -> produceBinaryExpr()
-						(Tok.ModOp) -> produceBinaryExpr()
-						(Tok.AndOp) -> produceBinaryExpr()
-						(Tok.XorOp) -> produceBinaryExpr()
-						(Tok.OrOp) -> produceBinaryExpr()
-						(Tok.GtOp) -> produceBinaryExpr()
-						(Tok.LtOp) -> produceBinaryExpr()
-						(Tok.EqOp) -> produceBinaryExpr()
-						(Tok.DefineOp) -> produceBinaryExpr()
-						(Tok.AccessorOp) -> produceBinaryExpr()
-						(Tok.MatchColon) -> produceMatchExpr(atom)
+						Tok.CaseArrow -> {
+							node: atom
+							idx: S.idx - 1
+							err: ()
+						}
+						Tok.AddOp -> produceBinaryExpr()
+						Tok.SubOp -> produceBinaryExpr()
+						Tok.MulOp -> produceBinaryExpr()
+						Tok.DivOp -> produceBinaryExpr()
+						Tok.ModOp -> produceBinaryExpr()
+						Tok.AndOp -> produceBinaryExpr()
+						Tok.XorOp -> produceBinaryExpr()
+						Tok.OrOp -> produceBinaryExpr()
+						Tok.GtOp -> produceBinaryExpr()
+						Tok.LtOp -> produceBinaryExpr()
+						Tok.EqOp -> produceBinaryExpr()
+						Tok.DefineOp -> produceBinaryExpr()
+						Tok.AccessorOp -> produceBinaryExpr()
+						Tok.MatchColon -> produceMatchExpr(atom)
 						_ -> {
 							node: ()
 							idx: S.idx
@@ -348,7 +353,7 @@ parseAtom := (tokens, idx) => tokens.(idx) :: {
 		err: 'unexpected end of input, expected atom'
 	}
 	_ -> tokens.(idx).type :: {
-		(Tok.NegOp) -> (
+		Tok.NegOp -> (
 			result := parseAtom(tokens, idx + 1)
 			result.err :: {
 				() -> {
@@ -388,49 +393,49 @@ parseAtom := (tokens, idx) => tokens.(idx) :: {
 				)
 
 				tok.type :: {
-					(Tok.NumberLiteral) -> {
+					Tok.NumberLiteral -> {
 						node: {
 							type: Node.NumberLiteral
 							val: tok.val
 						}
 						idx: idx + 1
 					}
-					(Tok.StringLiteral) -> {
+					Tok.StringLiteral -> {
 						node: {
 							type: Node.StringLiteral
 							val: tok.val
 						}
 						idx: idx + 1
 					}
-					(Tok.TrueLiteral) -> {
+					Tok.TrueLiteral -> {
 						node: {
 							type: Node.BooleanLiteral
 							val: true
 						}
 						idx: idx + 1
 					}
-					(Tok.FalseLiteral) -> {
+					Tok.FalseLiteral -> {
 						node: {
 							type: Node.BooleanLiteral
 							val: false
 						}
 						idx: idx + 1
 					}
-					(Tok.Ident) -> tokens.(idx + 1).type :: {
-						(Tok.FunctionArrow) -> parseFnLiteral(tokens, idx)
+					Tok.Ident -> tokens.(idx + 1).type :: {
+						Tok.FunctionArrow -> parseFnLiteral(tokens, idx)
 						_ -> consumePotentialFunctionCall({
 							type: Node.Ident
 							val: tok.val
 						}, idx + 1)
 					}
-					(Tok.EmptyIdent) -> tokens.(idx + 1).type :: {
-						(Tok.FunctionArrow) -> parseFnLiteral(tokens, idx)
+					Tok.EmptyIdent -> tokens.(idx + 1).type :: {
+						Tok.FunctionArrow -> parseFnLiteral(tokens, idx)
 						_ -> consumePotentialFunctionCall({
 							type: Node.EmptyIdent
 							val: tok.val
 						}, idx + 1)
 					}
-					(Tok.LParen) -> (
+					Tok.LParen -> (
 						exprs := []
 						result := parseGroup(tokens, idx, parseExpr, exprs, Tok.RParen)
 
@@ -442,7 +447,7 @@ parseAtom := (tokens, idx) => tokens.(idx) :: {
 									err: 'unexpected end of input, expected continued expression'
 								}
 								_ -> tokens.(result.idx).type :: {
-									(Tok.FunctionArrow) -> parseFnLiteral(tokens, idx)
+									Tok.FunctionArrow -> parseFnLiteral(tokens, idx)
 									_ -> consumePotentialFunctionCall({
 										type: Node.ExprList
 										exprs: exprs
@@ -452,7 +457,7 @@ parseAtom := (tokens, idx) => tokens.(idx) :: {
 							_ -> result
 						}
 					)
-					(Tok.LBrace) -> (
+					Tok.LBrace -> (
 						entries := []
 						result := parseGroup(tokens, idx, parseObjectEntry, entries, Tok.RBrace)
 
@@ -467,7 +472,7 @@ parseAtom := (tokens, idx) => tokens.(idx) :: {
 							_ -> result
 						}
 					)
-					(Tok.LBracket) -> parseListLiteral(tokens, idx)
+					Tok.LBracket -> parseListLiteral(tokens, idx)
 					_ -> {
 						node: ()
 						idx: idx
@@ -567,15 +572,15 @@ parseFnLiteral := (tokens, idx) => (
 			err: 'unexpected end of input, expected fn args list'
 		}
 		_ -> tok.type :: {
-			(Tok.EmptyIdent) -> processBody(idx + 1)
-			(Tok.Ident) -> (
+			Tok.EmptyIdent -> processBody(idx + 1)
+			Tok.Ident -> (
 				args.0 := {
 					type: Node.Ident
 					val: tok.val
 				}
 				processBody(idx + 1)
 			)
-			(Tok.LParen) -> (
+			Tok.LParen -> (
 				result := parseGroup(tokens, idx, parseExpr, args, Tok.RParen)
 				result.err :: {
 					() -> processBody(result.idx)
@@ -638,7 +643,7 @@ parseMatchBody := (tokens, idx) => tokens.(idx + 1) :: {
 }
 
 parseMatchClause := (tokens, idx) => (
-	result := parseAtom(tokens, idx)
+	result := parseExpr(tokens, idx)
 	atom := result.node
 
 	result.err :: {

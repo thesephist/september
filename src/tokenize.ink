@@ -107,8 +107,8 @@ tokenizeWithOpt := (s, lexComments) => (
 		S.line
 		S.col
 		type :: {
-			(Tok.TrueLiteral) -> S.i - 4
-			(Tok.FalseLiteral) -> S.i - 5
+			Tok.TrueLiteral -> S.i - 4
+			Tok.FalseLiteral -> S.i - 5
 			_ -> S.i - 1
 		}
 	))
@@ -147,25 +147,25 @@ tokenizeWithOpt := (s, lexComments) => (
 	ensureSeparator := () => (
 		commitClear()
 		S.lastType :: {
-			(Tok.Separator) -> ()
-			(Tok.LParen) -> ()
-			(Tok.LBracket) -> ()
-			(Tok.LBrace) -> ()
-			(Tok.AddOp) -> ()
-			(Tok.SubOp) -> ()
-			(Tok.MulOp) -> ()
-			(Tok.DivOp) -> ()
-			(Tok.ModOp) -> ()
-			(Tok.NegOp) -> ()
-			(Tok.GtOp) -> ()
-			(Tok.LtOp) -> ()
-			(Tok.EqOp) -> ()
-			(Tok.DefineOp) -> ()
-			(Tok.AccessorOp) -> ()
-			(Tok.KeyValueSeparator) -> ()
-			(Tok.FunctionArrow) -> ()
-			(Tok.MatchColon) -> ()
-			(Tok.CaseArrow) -> ()
+			Tok.Separator -> ()
+			Tok.LParen -> ()
+			Tok.LBracket -> ()
+			Tok.LBrace -> ()
+			Tok.AddOp -> ()
+			Tok.SubOp -> ()
+			Tok.MulOp -> ()
+			Tok.DivOp -> ()
+			Tok.ModOp -> ()
+			Tok.NegOp -> ()
+			Tok.GtOp -> ()
+			Tok.LtOp -> ()
+			Tok.EqOp -> ()
+			Tok.DefineOp -> ()
+			Tok.AccessorOp -> ()
+			Tok.KeyValueSeparator -> ()
+			Tok.FunctionArrow -> ()
+			Tok.MatchColon -> ()
+			Tok.CaseArrow -> ()
 			_ -> commitChar(Tok.Separator)
 		}
 	)
