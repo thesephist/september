@@ -78,6 +78,15 @@ function exec(path, args, stdin, stdoutFn) {
 	// TODO
 }
 
+function exit(code) {
+	if (__NODE) {
+		process.exit(code);
+	} else {
+		// TODO
+	}
+	return null;
+}
+
 function sin(n) {
 	return Math.sin(n);
 }
