@@ -32,28 +32,32 @@ given.verb :: {
 	` translate translates input Ink programs to JavaScript and
 		print them to stdout `
 	'translate' -> (
+		js := []
 		files := given.args
-		each(files, path => (
-			readFile(path, data => out(translate(data)))
-		))
+		each(files, (path, i) => readFile(path, data => (
+			js.(i) := translate(data)
+			len(files) :: {
+				len(js) -> log(cat(js, Newline))
+			}
+		)))
 	)
 	'translate-full' -> readFile(PreamblePath, preamble => (
 		js := [preamble]
 		files := given.args
-		each(files, path => readFile(path, data => (
-			js.len(js) := translate(data)
-			len(files) + 1 = len(js) :: {
-				true -> log(cat(js, Newline))
+		each(files, (path, i) => readFile(path, data => (
+			js.(i + 1) := translate(data)
+			len(files) + 1 :: {
+				len(js) -> log(cat(js, Newline))
 			}
 		)))
 	))
 	'run' -> readFile(PreamblePath, preamble => (
 		js := [preamble]
 		files := given.args
-		each(files, path => readFile(path, data => (
-			js.len(js) := translate(data)
-			len(files) + 1 = len(js) :: {
-				true -> exec(
+		each(files, (path, i) => readFile(path, data => (
+			js.(i + 1) := translate(data)
+			len(files) + 1 :: {
+				len(js) -> exec(
 					'node'
 					['--']
 					cat(js, ';' + Newline)
