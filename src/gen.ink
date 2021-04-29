@@ -46,7 +46,11 @@ genEmpty := () => '__Ink_Empty'
 
 genBooleanLiteral := node => string(node.val)
 genNumberLiteral := node => string(node.val)
-genStringLiteral := node => f('__Ink_String(`{{0}}`)', [replace(node.val, '`', '\\`')])
+genStringLiteral := node => f('__Ink_String(`{{0}}`)', [(
+	s := node.val
+	s := replace(s, '\\', '\\\\')
+	s := replace(s, '`', '\\`')
+)])
 
 genListLiteral := node => '[' + cat(map(node.exprs, gen), ', ') + ']'
 
