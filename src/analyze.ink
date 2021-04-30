@@ -17,75 +17,43 @@ Node := Parse.Node
 ident? := Parse.ident?
 ndString := Parse.ndString
 
+decl? := expr => expr.type = Node.BinaryExpr & expr.op = Tok.DefineOp & ident?(expr.left)
+
 analyzeSubexpr := (node, ctx, tail?) => node.type :: {
 	Node.ExprList -> (
-		declaredNames := (ctx.declaredNames :: {
-			() -> {}
-			_ -> ctx.declaredNames
-		})
-
 		ctx := clone(ctx)
-		ctx.declaredNames := ()
-		node.exprs := map(node.exprs, (n, i) => analyzeSubexpr(n, ctx, i + 1 = len(node.exprs)))
 
-		` implement local lexical scope and let-keyword binding `
-		defns := filter(
+		ctx.decls := {}
+		node.exprs := map(
 			node.exprs
-			expr => [expr.type, expr.op, ident?(expr.left)] = [Node.BinaryExpr, Tok.DefineOp, true]
+			(n, i) => analyzeSubexpr(n, ctx, i + 1 = len(node.exprs))
 		)
-		each(defns, defn => declaredNames.(defn.left.val) :: {
-			true -> ()
-			_ -> (
-				` name declared for the first time in this scope here,
-				so this needs to be a let-declaration `
-				defn.decl? := true
-				declaredNames.(defn.left.val) := true
-			)
-		})
 
+		` do not re-declare function parameters `
+		node.decls := filter(keys(ctx.decls), decl => ctx.args.(decl) = ())
 		node
 	)
 	Node.FnLiteral -> (
-		declaredNames := {}
+		ctx := clone(ctx)
+
+		` we ought only count as "recursion" when a function directly calls
+		itself -- we do not count references to itself in other callbacks,
+		which may be called asynchronously. `
+		ctx.enclosingFnLit :: {
+			node -> ()
+			_ -> ctx.enclosingFn := ()
+		}
+
+		ctx.decls := {}
+		ctx.args := {}
 		each(node.args, n => n.type :: {
-			Node.Ident -> declaredNames.(n.val) := true
+			Node.Ident -> ctx.args.(n.val) := true
 		})
 
-		[node.body.type, node.body.op] :: {
-			[Node.BinaryExpr, Tok.DefineOp] -> (
-				node.body.left.type :: {
-					Node.Ident -> declaredNames.(node.body.left.val) :: {
-						() -> node.body.decl? := true
-					}
-				}
-				analyzeSubexpr(node.body, ctx, true)
-			)
-			[Node.MatchExpr, _] -> (
-				cond := node.body.condition
-				[cond.type, cond.op, cond.left] :: {
-					` catches the common case where a new variable is bound to
-						the function scope within a naked match condition expression `
-					[Node.BinaryExpr, Tok.DefineOp, {type: Node.Ident, val: _}] -> (
-						tmpMatch := clone(node.body)
-						tmpMatch.condition := cond.left
-						node.body := {
-							type: Node.ExprList
-							exprs: [
-								cond
-								tmpMatch
-							]
-						}
-					)
-				}
-				analyzeSubexpr(node.body, ctx, true)
-			)
-			[Node.ExprList, _] -> (
-				bodyCtx := clone(ctx)
-				bodyCtx.declaredNames := declaredNames
-				analyzeSubexpr(node.body, bodyCtx, true)
-			)
-			_ -> analyzeSubexpr(node.body, ctx, true)
-		}
+		node.body := analyzeSubexpr(node.body, ctx, true)
+
+		` do not re-declare function parameters `
+		node.decls := filter(keys(ctx.decls), decl => ctx.args.(decl) = ())
 		node
 	)
 	Node.MatchExpr -> (
@@ -136,44 +104,50 @@ analyzeSubexpr := (node, ctx, tail?) => node.type :: {
 			true -> (
 				fnCtx := clone(ctx)
 				fnCtx.enclosingFn := node.left
+				fnCtx.enclosingFnLit := node.right
 
 				node.left := analyzeSubexpr(node.left, ctx, false)
 				node.right := analyzeSubexpr(node.right, fnCtx, false)
 
 				fnCtx.enclosingFn.recurred? :: {
-					true -> node.right := {
-						type: Node.FnLiteral
-						args: clone(node.right.args)
-						body: {
-							type: Node.ExprList
-							exprs: [
-								{
-									type: Node.BinaryExpr
-									op: Tok.DefineOp
-									left: {
-										type: Node.Ident
-										val: '__ink_trampolined_' + fnCtx.enclosingFn.val
-									}
-									right: node.right
-									decl?: true
-								}
-								{
-									type: Node.FnCall
-									fn: {
-										type: Node.Ident
-										val: '__ink_resolve_trampoline'
-									}
-									args: append([{
-										type: Node.Ident
-										val: '__ink_trampolined_' + fnCtx.enclosingFn.val
-									}], clone(node.right.args))
-								}
-							]
-						}
-					}
-				}
+					true -> (
+						trampolinedFnName := '__ink_trampolined_' + fnCtx.enclosingFn.val
 
-				node
+						ctx.decls.(trampolinedFnName) := true
+
+						node.right := {
+							type: Node.FnLiteral
+							args: clone(node.right.args)
+							decls: []
+							body: {
+								type: Node.ExprList
+								decls: []
+								exprs: [
+									{
+										type: Node.BinaryExpr
+										op: Tok.DefineOp
+										left: {
+											type: Node.Ident
+											val: trampolinedFnName
+										}
+										right: node.right
+									}
+									{
+										type: Node.FnCall
+										fn: {
+											type: Node.Ident
+											val: '__ink_resolve_trampoline'
+										}
+										args: append([{
+											type: Node.Ident
+											val: trampolinedFnName
+										}], clone(node.right.args))
+									}
+								]
+							}
+						}
+					)
+				}
 			)
 			_ -> (
 				node.left := analyzeSubexpr(node.left, ctx, false)
@@ -181,9 +155,24 @@ analyzeSubexpr := (node, ctx, tail?) => node.type :: {
 			)
 		}
 
+		decl?(node) :: {
+			true -> ctx.decls.(node.left.val) := true
+		}
+
 		node
 	)
+	Node.UnaryExpr -> node.left := analyzeSubexpr(node.left, ctx, false)
+	Node.ObjectLiteral -> node.entries := map(node.entries, e => analyzeSubexpr(e, ctx, false))
+	Node.ObjectEntry -> (
+		node.key := analyzeSubexpr(node.key, ctx, false)
+		node.val := analyzeSubexpr(node.val, ctx, false)
+		node
+	)
+	Node.ListLiteral -> node.exprs := map(node.exprs, e => analyzeSubexpr(e, ctx, false))
 	_ -> node
 }
 
-analyze := node => analyzeSubexpr(node, {}, false)
+analyze := node => analyzeSubexpr(node, {
+	decls: {}
+	args: {}
+}, false)

@@ -65,31 +65,26 @@ genObjectEntry := node => f('{{0}}: {{1}}', [
 ])
 genObjectLiteral := node => '{' + cat(map(node.entries, genObjectEntry), ', ') + '}'
 
-` some expressions (like assignments to variables ) are expressions in Ink
-	but statements in JS, and cannot be returned. This helper fn adds a workaround
-	so that we can "return assignments" by returning a reference to the assigned variable. `
-genAsReturn := node => [node.type, node.op, ident?(node.left)] :: {
-	[Node.BinaryExpr, Tok.DefineOp, true] -> f('{{0}}; return {{1}}', [gen(node), gen(node.left)])
-	_ -> f('return {{0}}', [gen(node)])
-}
-
 genFnArg := (node, i) => node.type :: {
 	Node.Ident -> genIdent(node)
-	Node.EmptyIdent -> '__' + string(i) `` avoid duplicate arg names
-	_ -> '__' + string(i)
+	_ -> '__' + string(i) `` avoid duplicate arg names
 }
 
 genFnLiteral := node => f('{{0}} => {{1}}', [
-	node.args :: {
-		[_] -> genFnArg(node.args.0, 0)
+	len(node.args) :: {
+		0 -> '()'
+		1 -> genFnArg(node.args.0, 0)
 		_ -> '(' + cat(map(node.args, genFnArg), ', ') + ')'
 	}
 	node.body.type :: {
 		Node.ObjectLiteral -> '(' + gen(node.body) + ')'
-		Node.ExprList -> gen(node.body)
-		_ -> node.body.decl? :: {
-			true -> '{' + genAsReturn(node.body) + '}'
-			_ -> gen(node.body)
+		_ -> len(node.decls) = 0 | node.body.type = Node.ExprList :: {
+			true -> gen(node.body)
+			_ -> gen({
+				type: Node.ExprList
+				decls: node.decls
+				exprs: [node.body]
+			})
 		}
 	}
 ])
@@ -106,7 +101,7 @@ genFnCall := node => f(
 )
 
 genUnaryExpr := node => node.op :: {
-	Tok.NegOp -> f('__ink_negate({{ 0 }})', [gen(node.left)])
+	Tok.NegOp -> f('__ink_negate({{0}})', [gen(node.left)])
 	_ -> genErr(f('UnaryExpr with unknown op: {{0}}', [node.op]))
 }
 
@@ -128,41 +123,38 @@ genBinaryExpr := node => node.op :: {
 	Tok.GtOp -> f('({{0}} > {{1}})', [gen(node.left), gen(node.right)])
 	Tok.LtOp -> f('({{0}} < {{1}})', [gen(node.left), gen(node.right)])
 
-	Tok.DefineOp -> node.decl? :: {
-		true -> f('let {{0}} = {{1}}', [gen(node.left), gen(node.right)])
-		_ -> [node.left.type, node.left.op] :: {
-			` DefineOp on a property `
-			[Node.BinaryExpr, Tok.AccessorOp] -> (
-				tmpDfn := clone(node.left)
-				tmpDfn.left := {
-					type: Node.Ident
-					val: '__ink_assgn_trgt'
-				}
-				f(
-					` this production preserves two Ink semantics:
-						- strings can be mutably assigned to.
-						- assignment on strings and composites return the
-							assignment target, not the assigned value,
-							as the value of the expression. `
-					cat([
-						'(() => {let __ink_assgn_trgt = __as_ink_string({{0}})'
-						'__is_ink_string(__ink_assgn_trgt) ? __ink_assgn_trgt.assign({{3}}, {{2}}) : {{1}} = {{2}}'
-						'return __ink_assgn_trgt})()'
-					], '; ')
-					[
-						gen(node.left.left)
+	Tok.DefineOp -> [node.left.type, node.left.op] :: {
+		` DefineOp on a property `
+		[Node.BinaryExpr, Tok.AccessorOp] -> (
+			tmpDfn := clone(node.left)
+			tmpDfn.left := {
+				type: Node.Ident
+				val: '__ink_assgn_trgt'
+			}
+			f(
+				` this production preserves two Ink semantics:
+					- strings can be mutably assigned to.
+					- assignment on strings and composites return the
+						assignment target, not the assigned value,
+						as the value of the expression. `
+				cat([
+					'(() => {let __ink_assgn_trgt = __as_ink_string({{0}})'
+					'__is_ink_string(__ink_assgn_trgt) ? __ink_assgn_trgt.assign({{3}}, {{2}}) : {{1}} = {{2}}'
+					'return __ink_assgn_trgt})()'
+				], '; ')
+				[
+					gen(node.left.left)
 
-						` composite assignment `
-						genDefineTarget(tmpDfn)
-						gen(node.right)
+					` composite assignment `
+					genDefineTarget(tmpDfn)
+					gen(node.right)
 
-						` string assignment `
-						gen(node.left.right)
-					]
-				)
+					` string assignment `
+					gen(node.left.right)
+				]
 			)
-			_ -> f('{{0}} = {{1}}', [genDefineTarget(node.left), gen(node.right)])
-		}
+		)
+		_ -> f('{{0}} = {{1}}', [genDefineTarget(node.left), gen(node.right)])
 	}
 
 	Tok.AccessorOp -> node.right.type :: {
@@ -235,20 +227,17 @@ genIdent := node => node.val :: {
 	)
 }
 
-genExprListExprs := exprs => '(() => {' + cat(map(exprs, (expr, i) => (
-	i + 1 :: {
-		len(exprs) -> genAsReturn(expr)
+genExprListExprs := (decls, exprs) => f('(() => { {{0}} {{1}} })()', [
+	cat(map(decls, decl => f('let {{0}}; ', [genIdent({val: decl})])), '')
+	cat(map(exprs, (expr, i) => i + 1 :: {
+		len(exprs) -> 'return ' + gen(expr)
 		_ -> gen(expr)
-	}
-)), '; ') + '})()'
+	}), '; ')
+])
 
 genExprList := node => node.exprs :: {
 	[] -> 'null'
-	[_] -> node.exprs.(0).decl? :: {
-		false -> f('({{0}})', [gen(node.exprs.0)])
-		_ -> genExprListExprs(node.exprs)
-	}
-	_ -> genExprListExprs(node.exprs)
+	_ -> genExprListExprs(node.decls, node.exprs)
 }
 
 genMatchExpr := node => f('__ink_match({{0}}, [{{1}}])', [
