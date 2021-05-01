@@ -10,6 +10,10 @@ str := load('../vendor/str')
 
 replace := str.replace
 
+quicksort := load('../vendor/quicksort')
+
+sort! := quicksort.sort!
+
 Tokenize := load('tokenize')
 Tok := Tokenize.Tok
 
@@ -227,8 +231,8 @@ genIdent := node => node.val :: {
 	)
 }
 
-genExprListExprs := (decls, exprs) => f('(() => { {{0}} {{1}} })()', [
-	cat(map(decls, decl => f('let {{0}}; ', [genIdent({val: decl})])), '')
+genExprListExprs := (decls, exprs) => f('(() => { {{0}}{{1}} })()', [
+	cat(map(sort!(decls), decl => f('let {{0}}; ', [genIdent({val: decl})])), '')
 	cat(map(exprs, (expr, i) => i + 1 :: {
 		len(exprs) -> 'return ' + gen(expr)
 		_ -> gen(expr)
