@@ -660,17 +660,17 @@ parseMatchClause := (tokens, idx) => (
 					err: 'unexpected end of input, expected expression in clause following ->'
 				}
 				_ -> (
-					result := parseExpr(tokens, result.idx + 1)
-					result.err :: {
+					clauseResult := parseExpr(tokens, result.idx + 1)
+					clauseResult.err :: {
 						() -> {
 							node: {
 								type: Node.MatchClause
 								target: atom
-								expr: result.node
+								expr: clauseResult.node
 							}
-							idx: result.idx
+							idx: clauseResult.idx
 						}
-						_ -> result
+						_ -> clauseResult
 					}
 				)
 			}
@@ -694,20 +694,20 @@ parseObjectEntry := (tokens, idx) => (
 				() -> {
 					node: ()
 					idx: result.idx + 1
-					err: 'unexpected end of input, expected expression in clause following ->'
+					err: 'unexpected end of input, expected expression in entry following :'
 				}
 				_ -> (
-					result := parseExpr(tokens, result.idx + 1)
-					result.err :: {
+					valResult := parseExpr(tokens, result.idx + 1)
+					valResult.err :: {
 						() -> {
 							node: {
 								type: Node.ObjectEntry
 								key: atom
-								val: result.node
+								val: valResult.node
 							}
-							idx: result.idx
+							idx: valResult.idx
 						}
-						_ -> result
+						_ -> valResult
 					}
 				)
 			}

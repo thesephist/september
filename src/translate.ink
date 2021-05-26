@@ -33,8 +33,8 @@ main := prog => (
 		` tree of nodes `
 		'composite' -> (
 			`` each(nodes, node => log(ndString(node)))
-			nodes := map(nodes, analyze)
-			cat(map(nodes, gen), ';' + Newline) + Newline
+			analyzed := map(nodes, analyze)
+			cat(map(analyzed, gen), ';' + Newline) + Newline
 		)
 		` parse err `
 		'string' -> nodes
