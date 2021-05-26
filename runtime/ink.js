@@ -78,11 +78,16 @@ function exec(path, args, stdin, stdoutFn) {
 	// TODO
 }
 
+function env() {
+	if (__NODE) {
+		return process.env;
+	}
+	return {};
+}
+
 function exit(code) {
 	if (__NODE) {
 		process.exit(code);
-	} else {
-		// TODO
 	}
 	return null;
 }
@@ -145,17 +150,7 @@ function string(x) {
 	if (x === null) {
 		return '()';
 	} else if (typeof x === 'number') {
-		const sign = x > 0 ? 1 : -1;
-		x = sign * x;
-		const whole = Math.floor(x);
-		const frac = x - whole;
-		const wholeStr = (sign * whole).toString();
-		if (frac == 0) {
-			return wholeStr;
-		} else {
-			const fracStr = frac.toString().substr(0, 10).padEnd(10, '0').substr(1);
-			return wholeStr + fracStr;
-		}
+		return x.toString();
 	} else if (__is_ink_string(x)) {
 		return x;
 	} else if (typeof x === 'boolean') {
